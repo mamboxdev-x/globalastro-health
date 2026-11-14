@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import Sidebar, { type ScreenName } from "@/components/Sidebar";
+import LoginScreen from "@/components/LoginScreen";
 import { DemoStateProvider } from "@/context/DemoStateContext";
+import { SessionProvider, useSession } from "@/context/SessionContext";
 import Dashboard from "@/views/Dashboard";
 import BoneHeart from "@/views/BoneHeart";
 import MentalHealth from "@/views/MentalHealth";
 import AlertView from "@/views/AlertView";
 import OfflineSync from "@/views/OfflineSync";
+import GroundView from "@/views/GroundView";
 import { missionDay } from "@/data/missionData";
 
 const screenConfig: Record<ScreenName, { eyebrow: string; module: string }> = {
@@ -27,6 +30,7 @@ function ActiveScreen({ active }: { active: ScreenName }) {
 }
 
 function AppShell() {
+  const { role, identifiant, deconnecter, basculeTheme, theme } = useSession();
   const [active, setActive] = useState<ScreenName>("Tableau de bord");
   const [utcNow, setUtcNow] = useState(() => new Date());
 
@@ -34,6 +38,9 @@ function AppShell() {
     const timer = window.setInterval(() => setUtcNow(new Date()), 30_000);
     return () => window.clearInterval(timer);
   }, []);
+
+  if (!role) return <LoginScreen />;
+  if (role === "sol") return <GroundView />;
 
   return (
     <div className="app-shell">
@@ -44,10 +51,21 @@ function AppShell() {
             <p className="eyebrow">{screenConfig[active].eyebrow}</p>
             <h1>{active}</h1>
           </div>
-          <div className="mission-time" aria-label="Heure actuelle en UTC">
-            <span>MISSION JOUR {missionDay}</span>
-            <span className="divider" aria-hidden="true" />
-            <time dateTime={utcNow.toISOString()}>{utcNow.toISOString().slice(11, 16)} UTC</time>
+          <div className="topbar-actions">
+            <span className="role-badge" title="Rôle connecté">
+              {identifiant || "astronaute"}
+            </span>
+            <button type="button" className="rf-btn" onClick={basculeTheme}>
+              {theme === "sombre" ? "Thème clair" : "Thème sombre"}
+            </button>
+            <button type="button" className="rf-btn" onClick={deconnecter}>
+              Se déconnecter
+            </button>
+            <div className="mission-time" aria-label="Heure actuelle en UTC">
+              <span>MISSION JOUR {missionDay}</span>
+              <span className="divider" aria-hidden="true" />
+              <time dateTime={utcNow.toISOString()}>{utcNow.toISOString().slice(11, 16)} UTC</time>
+            </div>
           </div>
         </header>
 
@@ -70,8 +88,10 @@ function AppShell() {
 
 export default function App() {
   return (
-    <DemoStateProvider>
-      <AppShell />
-    </DemoStateProvider>
+    <SessionProvider>
+      <DemoStateProvider>
+        <AppShell />
+      </DemoStateProvider>
+    </SessionProvider>
   );
 }
