@@ -1,4 +1,5 @@
 import { NavIcon, type IconName } from "@/assets/NavIcons";
+import { missionDay } from "@/data/missionData";
 
 export type ScreenName =
   | "Tableau de bord"
@@ -22,37 +23,42 @@ type SidebarProps = {
 
 export default function Sidebar({ active, onNavigate }: SidebarProps) {
   return (
-    <aside className="sidebar">
-      <div className="brand">
-        <div className="helix-mark" aria-hidden="true"><span /><span /><span /></div>
-        <div><div className="brand-name">GLOBALASTRO</div><div className="brand-subtitle">HEALTH SYSTEM</div></div>
+    <aside className="u-rail">
+      <div className="u-brand">
+        <div className="u-brand-mark" aria-hidden="true" />
+        <div>
+          <div className="u-brand-name">GlobalAstro</div>
+          <div className="u-brand-sub">Santé équipage</div>
+        </div>
       </div>
 
-      <nav className="primary-nav" aria-label="Navigation principale">
-        <p className="nav-section-label">MODULES</p>
+      <nav className="u-nav" aria-label="Navigation principale">
+        <p className="u-nav-label">Modules</p>
         {navItems.map((item) => (
           <button
             type="button"
             key={item.label}
-            className={`nav-item ${active === item.label ? "active" : ""}`}
+            className={`u-nav-btn ${active === item.label ? "is-active" : ""}`}
             onClick={() => onNavigate(item.label)}
             aria-current={active === item.label ? "page" : undefined}
-            title={item.label}
-            aria-label={item.label}
           >
             <NavIcon name={item.icon} />
             <span>{item.label}</span>
-            {item.label === "Alerte" && <span className="nav-count alert-count" aria-label="Une alerte">1</span>}
+            {item.label === "Alerte" && (
+              <span className="u-nav-count" aria-label="Une alerte en cours">
+                1
+              </span>
+            )}
           </button>
         ))}
       </nav>
 
-      <div className="system-status">
-        <div className="system-status-line">
-          <span className={`status-dot ${active === "Alerte" ? "alert-dot" : active === "Hors ligne" ? "offline-dot" : ""}`} />
-          <span>{active === "Alerte" ? "ALERTE À EXAMINER" : active === "Hors ligne" ? "MODE HORS LIGNE · DÉMO" : "PROTOCOLE DE DÉMO"}</span>
+      <div className="u-railfoot">
+        <div className="u-railfoot-row">
+          <span className="u-dot is-warn" aria-hidden="true" />
+          <span>Poste à bord · jour {missionDay}</span>
         </div>
-        <div className="sync-time">AUCUNE SYNCHRONISATION RÉELLE</div>
+        <div className="u-railfoot-note">démonstration · aucune donnée réelle</div>
       </div>
     </aside>
   );

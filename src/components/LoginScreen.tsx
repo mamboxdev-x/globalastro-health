@@ -1,23 +1,9 @@
 import { useState } from "react";
 import { useSession, type Role } from "@/context/SessionContext";
 
-type Choix = {
-  role: Role;
-  titre: string;
-  texte: string;
-};
-
-const CHOIX: Choix[] = [
-  {
-    role: "astro",
-    titre: "Astronaute",
-    texte: "À bord. Suit ses indicateurs, agit, demande un avis au sol.",
-  },
-  {
-    role: "sol",
-    titre: "Docteur · sol",
-    texte: "Sur Terre. Suit l'équipage, prépare des consignes.",
-  },
+const CHOIX: { role: Role; titre: string; texte: string }[] = [
+  { role: "astro", titre: "Astronaute", texte: "À bord. Suit ses indicateurs et agit." },
+  { role: "sol", titre: "Médecin au sol", texte: "Sur Terre. Suit l’équipage et prépare des consignes." },
 ];
 
 export default function LoginScreen() {
@@ -25,7 +11,7 @@ export default function LoginScreen() {
   const [role, setRole] = useState<Role>("astro");
   const [identifiant, setIdentifiant] = useState("cdr.mbaye");
   const [motDePasse, setMotDePasse] = useState("demo");
-  const [voirMotDePasse, setVoirMotDePasse] = useState(false);
+  const [voir, setVoir] = useState(false);
   const [erreur, setErreur] = useState("");
 
   const soumettre = () => {
@@ -38,93 +24,119 @@ export default function LoginScreen() {
   };
 
   return (
-    <div className="rf-login">
+    <div className="u-login">
       <form
-        className="rf-login-carte"
-        onSubmit={(e) => {
-          e.preventDefault();
+        className="u-login-card"
+        onSubmit={(event) => {
+          event.preventDefault();
           soumettre();
         }}
       >
-        <div className="rf-marque">
-          <div className="rf-marque-icone" aria-hidden="true" />
-          <div className="rf-marque-nom">
-            GlobalAstro Health
-            <small>Crew Health System</small>
+        <aside className="u-login-aside">
+          <div className="u-brand" style={{ padding: 0, border: 0 }}>
+            <div className="u-brand-mark" aria-hidden="true" />
+            <div>
+              <div className="u-brand-name">GlobalAstro</div>
+              <div className="u-brand-sub">Santé équipage</div>
+            </div>
           </div>
-        </div>
 
-        <div className="rf-champ">
-          <label htmlFor="identifiant">Identifiant de mission</label>
-          <input
-            id="identifiant"
-            value={identifiant}
-            autoComplete="username"
-            onChange={(e) => setIdentifiant(e.target.value)}
-          />
-        </div>
-
-        <div className="rf-champ">
-          <label htmlFor="motdepasse">Mot de passe</label>
-          <div style={{ display: "flex", gap: 8 }}>
-            <input
-              id="motdepasse"
-              type={voirMotDePasse ? "text" : "password"}
-              value={motDePasse}
-              autoComplete="current-password"
-              onChange={(e) => setMotDePasse(e.target.value)}
-            />
-            <button
-              type="button"
-              className="rf-btn"
-              style={{ flex: "0 0 auto" }}
-              onClick={() => setVoirMotDePasse((v) => !v)}
-              aria-label={voirMotDePasse ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-            >
-              {voirMotDePasse ? "Masquer" : "Voir"}
-            </button>
+          <div>
+            <p className="u-panel-kicker">Mission en cours</p>
+            <div className="u-h" style={{ fontSize: 15 }}>Orbite basse · jour 87</div>
+            <p style={{ fontSize: 12.5, color: "var(--u-ink-3)", marginTop: 4 }}>
+              Surveillance de la santé d’un équipage de trois personnes en mission longue.
+            </p>
           </div>
-        </div>
 
-        <p className="rf-cap">Votre rôle dans la mission</p>
-        <div className="rf-roles" role="radiogroup" aria-label="Rôle dans la mission">
-          {CHOIX.map((c) => (
-            <button
-              key={c.role}
-              type="button"
-              role="radio"
-              aria-checked={role === c.role}
-              className={`rf-role ${role === c.role ? "on" : ""}`}
-              onClick={() => setRole(c.role)}
-            >
-              <span className="puce" aria-hidden="true" />
+          <div className="u-login-facts">
+            <div className="u-fact">
+              <span className="u-dot is-warn" aria-hidden="true" style={{ marginTop: 5 }} />
               <span>
-                <b>{c.titre}</b>
-                <span className="texte">{c.texte}</span>
+                Un aller-retour Terre ↔ orbite prend <b>12 min</b> : le médecin au sol prépare, il n’agit pas en
+                direct.
               </span>
+            </div>
+            <div className="u-fact">
+              <span className="u-dot is-ok" aria-hidden="true" style={{ marginTop: 5 }} />
+              <span>
+                Fonctionne <b>hors ligne</b> : les mesures restent à bord et repartent à la fenêtre suivante.
+              </span>
+            </div>
+          </div>
+        </aside>
+
+        <div className="u-login-main">
+          <div className="u-h">Connexion</div>
+          <p>Choisissez votre rôle : l’interface change entièrement.</p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 20 }}>
+            <label className="u-field">
+              <span className="u-label">Identifiant de mission</span>
+              <input
+                className="u-input"
+                value={identifiant}
+                autoComplete="username"
+                onChange={(event) => setIdentifiant(event.target.value)}
+              />
+            </label>
+
+            <label className="u-field">
+              <span className="u-label">Mot de passe</span>
+              <span style={{ display: "flex", gap: 7 }}>
+                <input
+                  className="u-input"
+                  type={voir ? "text" : "password"}
+                  value={motDePasse}
+                  autoComplete="current-password"
+                  onChange={(event) => setMotDePasse(event.target.value)}
+                />
+                <button type="button" className="u-btn" onClick={() => setVoir((v) => !v)}>
+                  {voir ? "Masquer" : "Voir"}
+                </button>
+              </span>
+            </label>
+
+            <div>
+              <p className="u-label" style={{ marginBottom: 6 }}>
+                Rôle dans la mission
+              </p>
+              <div className="u-roles" role="radiogroup" aria-label="Rôle dans la mission">
+                {CHOIX.map((choix) => (
+                  <button
+                    key={choix.role}
+                    type="button"
+                    role="radio"
+                    aria-checked={role === choix.role}
+                    className={`u-role ${role === choix.role ? "is-on" : ""}`}
+                    onClick={() => setRole(choix.role)}
+                  >
+                    <span className="u-role-radio" aria-hidden="true" />
+                    <span>
+                      <b>{choix.titre}</b>
+                      <small>{choix.texte}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {erreur && (
+              <div className="u-info" role="alert">
+                <span>{erreur}</span>
+              </div>
+            )}
+
+            <button className="u-btn is-primary is-wide" type="submit" style={{ height: 36 }}>
+              Se connecter
             </button>
-          ))}
-        </div>
+          </div>
 
-        {erreur && (
-          <p className="rf-note" role="alert" style={{ borderLeft: "3px solid var(--rf-alert)" }}>
-            {erreur}
+          <p style={{ fontSize: 11, color: "var(--u-ink-3)", marginTop: 16, lineHeight: 1.5 }}>
+            Prototype d’aide à la décision : aucune donnée médicale réelle n’est traitée. NASA Space Apps 2026 ·
+            équipe K2/\Labs.
           </p>
-        )}
-
-        <button className="rf-bouton" type="submit">
-          Se connecter
-        </button>
-
-        <div className="rf-note">
-          <b>Mode démonstration.</b> Aucune donnée médicale réelle : toutes les mesures sont simulées.
-          Le rôle « Docteur · sol » ne transmet rien — il prépare une consigne, que le délai de
-          communication rend visible (<b>12 min aller-retour</b>).
         </div>
-
-        <p className="rf-pied-carte">
-          Prototype · aucune donnée réelle · <b>GlobalAstro Health</b> — NASA Space Apps 2026
-        </p>
       </form>
     </div>
   );

@@ -1,100 +1,188 @@
 import { cardiovascularData, formatSignedMinutes, sleepData, sleepDifferenceMinutes } from "@/data/missionData";
 
+const REFERENCE_MINUTES = 420;
+
 const psychologicalIndicators = [
-  { code: "PHQ-9", label: "DÉPISTAGE DÉPRESSIF" },
-  { code: "GAD-7", label: "DÉPISTAGE ANXIÉTÉ" },
-  { code: "WHO-5", label: "INDICE DE BIEN-ÊTRE" },
+  { code: "PHQ-9", label: "Dépistage dépressif" },
+  { code: "GAD-7", label: "Dépistage anxiété" },
+  { code: "WHO-5", label: "Indice de bien-être" },
 ];
 
-function ComplementaryData() {
-  return (
-    <article className="mental-card mood-module">
-      <div className="mental-card-header">
-        <div><p className="panel-kicker">INDICATEURS COMPLÉMENTAIRES</p><h2>Paramètres psychologiques</h2></div>
-        <div className="completion-badge">0/3</div>
-      </div>
-      <p className="module-instruction">
-        Les questionnaires ci-dessous ne sont pas renseignés dans cette démonstration. Aucune interprétation psychologique n'est produite.
-      </p>
-      <div className="missing-data-list">
-        {psychologicalIndicators.map((indicator, index) => (
-          <div className="missing-data-row" key={indicator.code}>
-            <span className="missing-index">0{index + 1}</span>
-            <div><strong>{indicator.code}</strong><small>{indicator.label}</small></div>
-            <span className="missing-value">NON RENSEIGNÉ</span>
-          </div>
-        ))}
-      </div>
-      <div className="mood-footer"><span>AUCUNE RÉPONSE ENREGISTRÉE</span><span>MODE DÉMONSTRATION</span></div>
-    </article>
-  );
-}
-
-function SleepJournal() {
+function SleepPanel() {
   const current = sleepData.days[sleepData.days.length - 1];
   return (
-    <article className="mental-card sleep-module">
-      <div className="mental-card-header">
-        <div><p className="panel-kicker">JOURNAL DU SOMMEIL · DONNÉES FICTIVES</p><h2>Durée sur les sept dernières périodes</h2></div>
-        <div className="sleep-efficiency"><span>DERNIÈRE VALEUR</span><strong>{current.duration}</strong></div>
+    <section className="u-panel" aria-labelledby="sleep-title">
+      <div className="u-panel-head">
+        <div>
+          <p className="u-panel-kicker">Journal du sommeil · 7 dernières nuits</p>
+          <h2 className="u-panel-title" id="sleep-title">
+            Durée par nuit
+          </h2>
+        </div>
+        <div className="u-panel-right">
+          <span className="u-metric-value" style={{ fontSize: 21 }}>
+            {current.duration}
+            <small>cette nuit</small>
+          </span>
+        </div>
       </div>
-      <div className="sleep-summary">
-        <div><span>DERNIÈRE VALEUR</span><strong>{current.duration}</strong></div>
-        <div><span>RÉFÉRENCE ILLUSTRATIVE</span><strong>7h00</strong></div>
-        <div className="sleep-delta"><span>ÉCART CALCULÉ</span><strong>{formatSignedMinutes(sleepDifferenceMinutes)}</strong></div>
+
+      <div className="u-panel-body">
+        <div className="u-bars" role="img" aria-label={`Durées de sommeil : ${sleepData.days.map((entry) => `${entry.day} ${entry.duration}`).join(", ")}`}>
+          {sleepData.days.map((entry) => (
+            <div className="u-bar" key={entry.day} aria-hidden="true">
+              <span className="u-bar-value">{entry.duration.replace("h", "h")}</span>
+              <div className="u-bar-track">
+                <span
+                  className={entry.minutes < REFERENCE_MINUTES ? "is-under" : ""}
+                  style={{ height: `${Math.round((entry.minutes / 480) * 100)}%` }}
+                />
+              </div>
+              <span className="u-bar-day">{entry.day}</span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="sleep-bars" role="img" aria-label={`Durées de sommeil de démonstration : ${sleepData.days.map((entry) => `${entry.day} ${entry.duration}`).join(", ")}`}>
-        {sleepData.days.map((entry) => (
-          <div className="sleep-day" key={entry.day} aria-hidden="true">
-            <span className="sleep-duration">{entry.duration}</span>
-            <div className="sleep-track"><span style={{ height: `${Math.round((entry.minutes / 450) * 100)}%` }} /></div>
-            <span className="sleep-day-label">{entry.day}</span>
-          </div>
-        ))}
+
+      <div className="u-stats">
+        <div className="u-stat">
+          <span className="u-stat-k">Référence pré-vol</span>
+          <span className="u-stat-v">
+            7 h 00
+          </span>
+        </div>
+        <div className="u-stat">
+          <span className="u-stat-k">Écart cette nuit</span>
+          <span className="u-stat-v" style={{ color: "var(--u-warn)" }}>
+            {formatSignedMinutes(sleepDifferenceMinutes)}
+          </span>
+        </div>
+        <div className="u-stat">
+          <span className="u-stat-k">Nuits sous la référence</span>
+          <span className="u-stat-v">
+            {sleepData.days.filter((d) => d.minutes < REFERENCE_MINUTES).length}
+            <small>/ {sleepData.days.length}</small>
+          </span>
+        </div>
       </div>
-      <p className="module-instruction">La comparaison porte sur la dernière valeur affichée ; elle ne calcule pas une tendance clinique ni une moyenne glissante.</p>
-    </article>
+    </section>
   );
 }
 
-function DocumentedCardiacData() {
+function PsychologicalPanel() {
   return (
-    <article className="mental-card cohesion-module">
-      <div className="mental-card-header">
-        <div><p className="panel-kicker">INDICATEURS CARDIOVASCULAIRES · DÉMO</p><h2>Valeurs complémentaires</h2></div>
-        <div className="status-pill nominal"><span className="status-dot" />ILLUSTRATIF</div>
-      </div>
-      <div className="cohesion-readings">
+    <section className="u-panel" aria-labelledby="psy-title">
+      <div className="u-panel-head">
         <div>
-          <span>VARIABILITÉ CARDIAQUE</span>
-          <strong>{cardiovascularData.hrvMs} <small>ms HRV</small></strong>
-          <div className="flat-meter"><span style={{ width: "63%" }} /></div>
-          <p>RÉFÉRENCE DE DÉMO : 51 MS</p>
+          <p className="u-panel-kicker">Questionnaires déclaratifs</p>
+          <h2 className="u-panel-title" id="psy-title">
+            Paramètres psychologiques
+          </h2>
         </div>
-        <div>
-          <span>FRÉQUENCE CARDIAQUE AU REPOS</span>
-          <strong>{cardiovascularData.heartRateBpm} <small>bpm</small></strong>
-          <div className="flat-meter"><span style={{ width: "58%" }} /></div>
-          <p>RÉFÉRENCE DE DÉMO : 61 BPM</p>
+        <div className="u-panel-right">
+          <span className="u-chip mono">0 / 3 remplis</span>
         </div>
       </div>
-      <p className="module-instruction">Les valeurs affichées ne proviennent pas d'un dispositif médical connecté.</p>
-    </article>
+
+      <div className="u-panel-body tight">
+        <div className="u-rows">
+          {psychologicalIndicators.map((indicator) => (
+            <div className="u-row" key={indicator.code}>
+              <span className="u-row-k">
+                <b>{indicator.code}</b>
+                <small>{indicator.label}</small>
+              </span>
+              <span className="u-row-value is-muted">Non renseigné</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="u-panel-foot">
+        Les questionnaires n’ont pas été soumis : aucun score n’est calculé et aucune interprétation psychologique
+        n’est produite.
+      </div>
+    </section>
+  );
+}
+
+function CardiacPanel() {
+  const hrv = cardiovascularData.hrvMs;
+  const hr = cardiovascularData.heartRateBpm;
+  const hrvRef = 51;
+  const hrRef = 61;
+
+  return (
+    <section className="u-panel" aria-labelledby="cardio-mental-title">
+      <div className="u-panel-head">
+        <div>
+          <p className="u-panel-kicker">Réponse autonome</p>
+          <h2 className="u-panel-title" id="cardio-mental-title">
+            Indicateurs cardiovasculaires
+          </h2>
+        </div>
+        <div className="u-panel-right">
+          <span className="u-chip is-ok">Dans la référence</span>
+        </div>
+      </div>
+
+      <div className="u-panel-body">
+        <div className="u-rows">
+          <div className="u-row">
+            <span className="u-row-k">
+              <b>Variabilité cardiaque</b>
+              <small>HRV · référence pré-vol {hrvRef} ms</small>
+            </span>
+            <span className="u-row-value">
+              {hrv} <span style={{ color: "var(--u-ink-3)" }}>ms</span>
+            </span>
+          </div>
+          <div className="u-row">
+            <span className="u-row-k">
+              <b>Fréquence de repos</b>
+              <small>Référence pré-vol {hrRef} bpm</small>
+            </span>
+            <span className="u-row-value">
+              {hr} <span style={{ color: "var(--u-ink-3)" }}>bpm</span>
+            </span>
+          </div>
+          <div className="u-row">
+            <span className="u-row-k">
+              <b>Sommeil / HRV</b>
+              <small>Corrélation des deux derniers cycles</small>
+            </span>
+            <span className="u-row-value is-muted">Non calculée</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="u-panel-foot">
+        Valeurs issues de la couche de démonstration, sans dispositif médical connecté.
+      </div>
+    </section>
   );
 }
 
 export default function MentalHealth() {
   return (
-    <section className="mental-overview" aria-labelledby="mental-title">
-      <div className="section-heading mental-heading">
-        <div><h2 id="mental-title">Sommeil & données complémentaires</h2><p>Suivi de démonstration · aucun diagnostic ni questionnaire complété</p></div>
-        <div className="privacy-label">DONNÉES FICTIVES · NON MÉDICALES</div>
+    <>
+      <div className="u-shead">
+        <div>
+          <h2>Santé mentale</h2>
+          <p>Sommeil, ressenti déclaratif et réponse autonome</p>
+        </div>
+        <div className="right">
+          <span className="u-chip mono">J87</span>
+          <span className="u-chip">Données simulées</span>
+        </div>
       </div>
-      <div className="mental-grid">
-        <ComplementaryData />
-        <SleepJournal />
-        <DocumentedCardiacData />
+
+      <SleepPanel />
+
+      <div className="u-grid g2">
+        <PsychologicalPanel />
+        <CardiacPanel />
       </div>
-    </section>
+    </>
   );
 }

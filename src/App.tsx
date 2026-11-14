@@ -11,12 +11,12 @@ import OfflineSync from "@/views/OfflineSync";
 import GroundView from "@/views/GroundView";
 import { missionDay } from "@/data/missionData";
 
-const screenConfig: Record<ScreenName, { eyebrow: string; module: string }> = {
-  "Tableau de bord": { eyebrow: "SYNTHÈSE DE LA MISSION", module: "MODULE MED-01" },
-  "Os & Cœur": { eyebrow: "SUIVI PHYSIOLOGIQUE", module: "MODULE PHY-02" },
-  "Santé mentale": { eyebrow: "BIEN-ÊTRE ET SOMMEIL", module: "MODULE PSY-03" },
-  Alerte: { eyebrow: "SUIVI DES ALERTES", module: "MODULE ALT-04" },
-  "Hors ligne": { eyebrow: "ÉTAT DU SYSTÈME", module: "MODULE COM-05" },
+const moduleCode: Record<ScreenName, string> = {
+  "Tableau de bord": "MED-01",
+  "Os & Cœur": "PHY-02",
+  "Santé mentale": "PSY-03",
+  Alerte: "ALT-04",
+  "Hors ligne": "COM-05",
 };
 
 function ActiveScreen({ active }: { active: ScreenName }) {
@@ -43,43 +43,49 @@ function AppShell() {
   if (role === "sol") return <GroundView />;
 
   return (
-    <div className="app-shell">
+    <div className="u-app">
       <Sidebar active={active} onNavigate={setActive} />
-      <main className="main-content" id="main-content">
-        <header className="topbar">
-          <div className="mission-block">
-            <p className="eyebrow">{screenConfig[active].eyebrow}</p>
-            <h1>{active}</h1>
+
+      <main className="u-main">
+        <header className="u-top">
+          <div>
+            <div className="u-title">{active}</div>
+            <div className="u-sub">
+              Module {moduleCode[active]} · poste à bord · jour {missionDay}
+            </div>
           </div>
-          <div className="topbar-actions">
-            <span className="role-badge" title="Rôle connecté">
-              {identifiant || "astronaute"}
+
+          <div className="u-top-actions">
+            <span className="u-chip">{identifiant || "astronaute"}</span>
+            <span className="u-chip is-warn">
+              <span className="u-dot is-warn" aria-hidden="true" />
+              Prototype · données simulées
             </span>
-            <button type="button" className="rf-btn" onClick={basculeTheme}>
+            <button type="button" className="u-btn is-quiet" onClick={basculeTheme}>
               {theme === "sombre" ? "Thème clair" : "Thème sombre"}
             </button>
-            <button type="button" className="rf-btn" onClick={deconnecter}>
-              Se déconnecter
+            <button type="button" className="u-btn is-quiet" onClick={deconnecter}>
+              Quitter
             </button>
-            <div className="mission-time" aria-label="Heure actuelle en UTC">
-              <span>MISSION JOUR {missionDay}</span>
-              <span className="divider" aria-hidden="true" />
-              <time dateTime={utcNow.toISOString()}>{utcNow.toISOString().slice(11, 16)} UTC</time>
+            <div className="u-clock">
+              <span>UTC</span>
+              <b>{utcNow.toISOString().slice(11, 16)}</b>
             </div>
           </div>
         </header>
 
-        <div className="prototype-notice" role="note">
-          <span className="notice-dot" aria-hidden="true" />
-          PROTOTYPE · DONNÉES DE DÉMONSTRATION · AUCUN CAPTEUR NI SERVICE CONNECTÉ
+        <div className="u-body">
+          <ActiveScreen active={active} />
         </div>
 
-        <ActiveScreen active={active} />
-
-        <footer className="footer">
-          <span>GlobalAstro Health v1.2.0</span>
-          <span className="footer-center">PROTOTYPE · SAUVEGARDE LOCALE SI DISPONIBLE</span>
-          <span>{screenConfig[active].module}</span>
+        <footer className="u-foot">
+          <span>
+            GlobalAstro Health <b>v1.2.0</b>
+          </span>
+          <span className="mid">
+            Prototype de démonstration · <b>aucun dispositif médical connecté</b> · aucune donnée réelle
+          </span>
+          <span>K2/\Labs</span>
         </footer>
       </main>
     </div>

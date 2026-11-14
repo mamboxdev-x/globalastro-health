@@ -2,73 +2,107 @@ import AlertBox from "@/components/AlertBox";
 import { useDemoState } from "@/context/DemoStateContext";
 
 const alertActions = [
-  { id: "light", title: "Examiner le protocole de récupération lumineuse", detail: "À discuter avec le personnel médical compétent" },
-  { id: "load", title: "Réévaluer la charge cognitive non critique", detail: "Point de suivi proposé · non exécuté automatiquement" },
-  { id: "sleep", title: "Consigner le sommeil et le ressenti", detail: "Saisie de démonstration avant la prochaine période de repos" },
+  { id: "light", title: "Examiner le protocole de récupération lumineuse", detail: "À valider avec le médecin au sol" },
+  { id: "load", title: "Réévaluer la charge cognitive du jour", detail: "Alléger les tâches non critiques" },
+  { id: "sleep", title: "Consigner le sommeil et le ressenti", detail: "Avant la prochaine période de repos" },
 ] as const;
 
 export default function AlertView() {
   const { checkedAlertActions, toggleAlertAction, contactRequestPrepared, prepareContactRequest } = useDemoState();
 
   return (
-    <section className="alert-overview" aria-labelledby="alert-title">
-      <AlertBox />
-
-      <section className="priority-panel" aria-labelledby="priority-title">
-        <div className="priority-header">
-          <div>
-            <p className="panel-kicker">MESURES DE SUIVI</p>
-            <h2 id="priority-title">Actions à examiner</h2>
-          </div>
-          <span>{checkedAlertActions.length}/3 SUIVIES DANS LA DÉMO</span>
+    <>
+      <div className="u-shead">
+        <div>
+          <h2>Alerte</h2>
+          <p>Détection, dérive par rapport aux références et mesures de suivi</p>
         </div>
-        <div className="priority-list">
-          {alertActions.map((action, index) => {
-            const isChecked = checkedAlertActions.includes(action.id);
-            return (
-              <button
-                type="button"
-                className={`priority-action ${isChecked ? "checked" : ""}`}
-                key={action.id}
-                onClick={() => toggleAlertAction(action.id)}
-                aria-pressed={isChecked}
-              >
-                <span className="priority-number">0{index + 1}</span>
-                <span className="priority-copy">
-                  <strong>{action.title}</strong>
-                  <small>{action.detail}</small>
-                </span>
-                <span className="priority-check" aria-hidden="true">
-                  {isChecked ? "✓" : ""}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <p className="helper-text">Les cases mémorisent uniquement un suivi dans l'interface ; elles ne confirment pas la réalisation d'un acte médical.</p>
-      </section>
-
-      <div className="contact-panel">
-        <div className="contact-action-wrap">
-          <button
-            type="button"
-            className={`contact-button ${contactRequestPrepared ? "contacted" : ""}`}
-            onClick={prepareContactRequest}
-            aria-pressed={contactRequestPrepared}
-          >
-            {contactRequestPrepared ? "DEMANDE PRÉPARÉE LOCALEMENT" : "PRÉPARER UNE DEMANDE AU MÉDECIN"}
-          </button>
-          <p className="helper-text" role="status">
-            {contactRequestPrepared
-              ? "La demande est seulement préparée dans cette interface. Aucun message n'a été envoyé."
-              : "Aucun canal de communication n'est connecté : le bouton prépare uniquement un état de démonstration."}
-          </p>
-        </div>
-        <div className="transmission-delay">
-          <span>DÉLAI DE COMMUNICATION INDICATIF</span>
-          <strong>12 MIN ALLER-RETOUR</strong>
+        <div className="right">
+          <span className="u-chip is-alert">1 alerte ouverte</span>
         </div>
       </div>
-    </section>
+
+      <AlertBox />
+
+      <section className="u-panel" aria-labelledby="priority-title">
+        <div className="u-panel-head">
+          <div>
+            <p className="u-panel-kicker">Mesures de suivi</p>
+            <h2 className="u-panel-title" id="priority-title">
+              Actions à examiner
+            </h2>
+          </div>
+          <div className="u-panel-right">
+            <span className="u-chip mono">{checkedAlertActions.length} / 3 suivies</span>
+          </div>
+        </div>
+
+        <div className="u-panel-body tight">
+          <div className="u-rows">
+            {alertActions.map((action, index) => {
+              const isChecked = checkedAlertActions.includes(action.id);
+              return (
+                <div className="u-row" key={action.id}>
+                  <span className="u-row-value is-muted" style={{ width: 20 }}>{`0${index + 1}`}</span>
+                  <span className="u-row-k">
+                    <b>{action.title}</b>
+                    <small>{action.detail}</small>
+                  </span>
+                  <button
+                    type="button"
+                    className={`u-btn ${isChecked ? "is-done" : ""}`}
+                    onClick={() => toggleAlertAction(action.id)}
+                    aria-pressed={isChecked}
+                  >
+                    {isChecked ? "Suivie" : "Marquer suivie"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="u-panel-foot">
+          Le suivi est mémorisé dans l’interface uniquement : il ne confirme pas la réalisation d’un acte médical.
+        </div>
+      </section>
+
+      <section className="u-panel" aria-labelledby="contact-title">
+        <div className="u-panel-head">
+          <div>
+            <p className="u-panel-kicker">Liaison médecin au sol</p>
+            <h2 className="u-panel-title" id="contact-title">
+              Préparer une demande d’avis
+            </h2>
+          </div>
+          <div className="u-panel-right">
+            <span className="u-chip is-warn mono">aller-retour 12 min</span>
+          </div>
+        </div>
+
+        <div className="u-panel-body">
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className={`u-btn ${contactRequestPrepared ? "is-done" : "is-primary"}`}
+              onClick={prepareContactRequest}
+              aria-pressed={contactRequestPrepared}
+            >
+              {contactRequestPrepared ? "Demande préparée" : "Préparer la demande"}
+            </button>
+            <span style={{ fontSize: 12.5, color: "var(--u-ink-3)" }}>
+              {contactRequestPrepared
+                ? "La demande est prête dans l’interface. Aucun message n’a été envoyé."
+                : "Aucun canal n’est connecté : le bouton prépare un état, il n’envoie rien."}
+            </span>
+          </div>
+        </div>
+
+        <div className="u-panel-foot">
+          Le délai de 12 minutes correspond à un aller-retour Terre ↔ orbite basse : une consigne ne peut pas être
+          appliquée en direct.
+        </div>
+      </section>
+    </>
   );
 }
