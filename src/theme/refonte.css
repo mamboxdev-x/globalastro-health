@@ -35,6 +35,12 @@
   --rf-rail: 236px;
 
   --rf-sans: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --rf-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+  /* on remplace aussi les variables de l'application d'origine : la police
+     change partout, y compris dans les règles qui écrivent var(--sans). */
+  --sans: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
 }
 
 html[data-rf-theme="dark"] {
@@ -301,3 +307,49 @@ body { background: var(--rf-bg); color: var(--rf-ink); font-family: var(--rf-san
 
 /* cohérence typographique : plus rien en dessous de 11 px */
 .rf-app, .main-content { -webkit-font-smoothing: antialiased; }
+
+/* --------------------------------------------------------------------------
+   4. Fonds restés sombres dans les modules d'origine
+   (le CSS de départ code 59 surfaces en dur ; voici celles qui se voient)
+   Chacune reprend un rôle : alerte = rouge clair, attente = ambre clair,
+   action = violet, donnée = gris clair. Plus aucun noir dans le thème clair.
+   -------------------------------------------------------------------------- */
+html, #root { background: var(--rf-bg); }
+
+/* --- module Alerte --- */
+.alert-banner { background: rgba(255, 107, 107, .08); border-color: rgba(255, 107, 107, .28); color: var(--rf-ink); }
+.alert-banner h2, .alert-banner strong, .alert-code, .alert-symbol { color: var(--rf-alert-ink); }
+.clinical-note { background: var(--rf-chip); border-color: var(--rf-border); color: var(--rf-ink); }
+.priority-action, .priority-action:hover { background: var(--rf-card); border-color: var(--rf-border); color: var(--rf-ink); }
+.priority-action.checked { background: rgba(46, 204, 113, .12); border-color: rgba(46, 204, 113, .35); }
+.priority-check { background: var(--rf-chip); border-color: var(--rf-border); color: var(--rf-muted); }
+.transmission-delay { background: rgba(245, 158, 11, .14); border-color: rgba(245, 158, 11, .35); color: var(--rf-warn-ink); }
+.contact-button { background: linear-gradient(135deg, var(--rf-accent), var(--rf-accent-2)); border: 0; color: #fff; }
+.contact-button.contacted { background: var(--rf-ok); border: 0; color: #fff; }
+
+/* --- module Hors ligne --- */
+.link-times { background: var(--rf-chip); border-color: var(--rf-border); color: var(--rf-ink); }
+.packet-table th { background: var(--rf-chip); color: var(--rf-muted); }
+.buffer-track, .flat-meter, .progress-track, .hydration-track { background: var(--rf-chip); }
+.sync-button, .sync-button:hover { background: linear-gradient(135deg, var(--rf-accent), var(--rf-accent-2)); border: 0; color: #fff; }
+
+/* --- module Os & Cœur --- */
+.cardio-stats { background: var(--rf-chip); border-color: var(--rf-border); color: var(--rf-ink); }
+.validate-button, .validate-button:hover { background: linear-gradient(135deg, var(--rf-accent), var(--rf-accent-2)); border: 0; color: #fff; }
+.validate-button.validated, .completion-badge.complete { background: rgba(46, 204, 113, .16); border: 1px solid rgba(46, 204, 113, .35); color: var(--rf-ok-ink); }
+
+/* --- module Santé mentale --- */
+.missing-data-row, .sleep-summary, .cohesion-readings { background: var(--rf-chip); border-color: var(--rf-border); color: var(--rf-ink); }
+.sleep-track { background: var(--rf-chip); border-color: var(--rf-border); }
+.mood-selector button, .choice-list button { background: var(--rf-card); border-color: var(--rf-border); color: var(--rf-ink); }
+.mood-selector button:hover, .choice-list button:hover { background: var(--rf-accent-soft); border-color: var(--rf-accent-2); }
+.answer-chips span { background: var(--rf-chip); color: var(--rf-muted); }
+.journal-note-panel textarea, .chat-composer input, .meal-entry input, .chat-bubble { background: var(--rf-bg); border-color: var(--rf-border); color: var(--rf-ink); }
+.chat-bubble.user { background: var(--rf-accent-soft); border-color: rgba(108, 92, 231, .3); }
+.notice-panel, .environment-status.muted { background: rgba(245, 158, 11, .12); border-color: rgba(245, 158, 11, .32); color: var(--rf-warn-ink); }
+.environment-status.good { background: rgba(46, 204, 113, .14); border-color: rgba(46, 204, 113, .32); color: var(--rf-ok-ink); }
+
+/* texte lisible dans tous ces blocs, quel que soit le sous-élément */
+.alert-banner *, .clinical-note *, .priority-action *, .link-times *, .cardio-stats *,
+.sleep-summary *, .cohesion-readings *, .missing-data-row * { color: inherit; }
+.contact-button *, .sync-button *, .validate-button * { color: #fff; }
