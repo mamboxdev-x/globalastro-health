@@ -1,67 +1,69 @@
-GlobalAstro Health — PAQUET PRÊT À L'EMPLOI
-NASA Space Apps Challenge 2026 — équipe K2/\Labs
-================================================================
+GLOBALASTRO HEALTH — CREW HEALTH SYSTEM
+=======================================
 
-Ce paquet a été préparé pour vous éviter les pièges Windows. Il contient DEUX choses :
+Cette archive contient le frontend React/TypeScript du prototype GlobalAstro Health.
+Elle ne contient volontairement ni backend, ni base de donnees, ni API,
+ni connexion a de vrais capteurs. Toutes les valeurs et courbes sont
+fictives et servent uniquement a illustrer l'interface.
 
-  projet\        les sources React (Vite + Tailwind), AVEC le renommage déjà fait
-  site_compile\  le site DÉJÀ COMPILÉ — utilisable sans npm, sans rien installer
-
-Vous n'avez rien à renommer : le dossier s'appelle déjà « .figma » (le piège du zip
-d'origine, où il s'appelait « figma », est corrigé).
+Site en ligne : https://www.globalastro.health
 
 
---------------------------------------------------------------
-1. VOIR LE SITE TOUT DE SUITE (le plus simple)
---------------------------------------------------------------
-Double-clique sur  VOIR_LE_SITE.cmd
-(il démarre un petit serveur local et ouvre le navigateur — la page ne s'ouvre pas
- correctement par double-clic direct, car les modules JavaScript ont besoin d'un
- serveur HTTP.)
+LANCEMENT SOUS WINDOWS
+----------------------
+1. Installer Node.js 22 (ou une version compatible avec Vite 8).
+2. Ouvrir PowerShell DANS LE DOSSIER QUI CONTIENT package.json
+   (c'est l'erreur la plus frequente : « Could not read package.json ... ENOENT »
+   signifie qu'on est dans le mauvais dossier).
+3. Executer :
 
+   npm.cmd ci
+   npm.cmd run dev
 
---------------------------------------------------------------
-2. TRAVAILLER SUR LE CODE (mode développeur)
---------------------------------------------------------------
-Double-clique sur  LANCER_LE_PROJET.cmd
-La première fois, ça installe les paquets (~30 s) puis démarre le serveur.
-L'adresse s'affiche, en général :  http://localhost:5173
-
-
---------------------------------------------------------------
-3. DÉPLOYER SUR L'HÉBERGEMENT / LE DOMAINE
---------------------------------------------------------------
-Le contenu de  site_compile\  EST le site : on copie ces fichiers tels quels sur
-l'hébergement GoDaddy. Ou on relance un build avec :
-
-    cd projet
-    npm.cmd run build
-
-
---------------------------------------------------------------
-LES PIÈGES WINDOWS (à ne pas redécouvrir)
---------------------------------------------------------------
-* PowerShell bloque npm.ps1 :
-      « Impossible de charger le fichier npm.ps1, car l'exécution de scripts
-        est désactivée sur ce système »
-  → soit taper  npm.cmd  au lieu de  npm
-  → soit, une fois pour toutes, sans administrateur :
+   Si Windows refuse « npm » :
+     « Impossible de charger le fichier npm.ps1, car l'execution de scripts
+       est desactivee sur ce systeme »
+   -> utiliser npm.cmd au lieu de npm (un .cmd n'est pas soumis a la politique),
+      OU une fois pour toutes, sans administrateur :
         Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
-* npm doit être lancé DEPUIS le dossier du projet (celui qui contient package.json).
-  Sinon :  « Could not read package.json ... ENOENT ».
-  Vérifier où on est :  pwd   ou   dir
+4. Ouvrir l'adresse locale affichee par Vite dans le navigateur.
 
-* Le dossier « .figma » commence par un point : il est invisible dans l'explorateur
-  Windows par défaut. Ne le supprimez pas, vite.config.ts en dépend.
+Ne pas supprimer le dossier .figma : vite.config.ts en depend.
 
 
---------------------------------------------------------------
-CE QUE CE PAQUET EST — ET CE QU'IL N'EST PAS
---------------------------------------------------------------
-C'est une INTERFACE avec des données écrites en dur : aucun appel réseau, aucun
-backend, pas de données NASA réelles. Les écrans fonctionnent, les chiffres ne sont
-pas encore sourcés.
+VERIFICATION
+------------
 
-À dire devant le jury : les lignes « NON RENS. » (densité osseuse, acuité visuelle,
-CO2) sont un CHOIX, pas un manque — l'outil refuse d'inventer une valeur. Gardez ça.
+   npm.cmd run typecheck
+   npm.cmd run build
+   npm.cmd run check
+
+
+STRUCTURE
+---------
+src/App.tsx                       Navigation et structure generale
+src/views/                        Les cinq ecrans du frontend
+src/components/                   Composants partages
+src/data/missionData.ts           Donnees de demonstration centralisees
+src/context/DemoStateContext.tsx  Etats partages et sauvegarde locale
+src/index.css                     Theme visuel (themes clair et sombre)
+
+
+ETATS DE DEMONSTRATION
+----------------------
+Les validations d'exercices, cases de suivi et demandes simulees sont
+conservees dans localStorage (cle « globalastro-demo-state-v1 ») lorsque le
+navigateur autorise son utilisation. Elles ne sont jamais envoyees a un
+service distant.
+
+Les fichiers docs/ecran_*.png sont des captures du prototype ; elles peuvent
+ne pas refleter exactement le theme CSS le plus recent.
+
+
+CE QU'IL FAUT DIRE DEVANT LE JURY
+---------------------------------
+- Les indicateurs marques NON RENSEIGNE sont un CHOIX : l'outil refuse
+  d'inventer une valeur. Ne pas les presenter comme un manque.
+- Une banniere a l'ecran rappelle en permanence qu'il s'agit d'un prototype
+  a donnees de demonstration : c'est une force, pas une faiblesse.

@@ -1,12 +1,4 @@
-const sleepDays = [
-  { day: "J−6", duration: "6h28", minutes: 388 },
-  { day: "J−5", duration: "6h12", minutes: 372 },
-  { day: "J−4", duration: "6h45", minutes: 405 },
-  { day: "J−3", duration: "5h50", minutes: 350 },
-  { day: "J−2", duration: "6h36", minutes: 396 },
-  { day: "J−1", duration: "7h02", minutes: 422 },
-  { day: "J87", duration: "6h12", minutes: 372 },
-];
+import { cardiovascularData, formatSignedMinutes, sleepData, sleepDifferenceMinutes } from "@/data/missionData";
 
 const psychologicalIndicators = [
   { code: "PHQ-9", label: "DÉPISTAGE DÉPRESSIF" },
@@ -18,73 +10,49 @@ function ComplementaryData() {
   return (
     <article className="mental-card mood-module">
       <div className="mental-card-header">
-        <div>
-          <p className="panel-kicker">DONNÉES COMPLÉMENTAIRES</p>
-          <h2>Paramètres psychologiques</h2>
-        </div>
+        <div><p className="panel-kicker">INDICATEURS COMPLÉMENTAIRES</p><h2>Paramètres psychologiques</h2></div>
         <div className="completion-badge">0/3</div>
       </div>
       <p className="module-instruction">
-        Ces indicateurs sont documentés, mais aucune valeur sourcée en vol n’est disponible.
+        Les questionnaires ci-dessous ne sont pas renseignés dans cette démonstration. Aucune interprétation psychologique n'est produite.
       </p>
       <div className="missing-data-list">
         {psychologicalIndicators.map((indicator, index) => (
           <div className="missing-data-row" key={indicator.code}>
             <span className="missing-index">0{index + 1}</span>
-            <div>
-              <strong>{indicator.code}</strong>
-              <small>{indicator.label}</small>
-            </div>
+            <div><strong>{indicator.code}</strong><small>{indicator.label}</small></div>
             <span className="missing-value">NON RENSEIGNÉ</span>
           </div>
         ))}
       </div>
-      <div className="mood-footer">
-        <span>AUCUNE MESURE EN VOL</span>
-        <span>SOURCE DOCUMENTAIRE</span>
-      </div>
+      <div className="mood-footer"><span>AUCUNE RÉPONSE ENREGISTRÉE</span><span>MODE DÉMONSTRATION</span></div>
     </article>
   );
 }
 
 function SleepJournal() {
+  const current = sleepData.days[sleepData.days.length - 1];
   return (
     <article className="mental-card sleep-module">
       <div className="mental-card-header">
-        <div>
-          <p className="panel-kicker">DONNÉE PHYSIOLOGIQUE DOCUMENTÉE</p>
-          <h2>Durée de sommeil — 7 derniers jours</h2>
-        </div>
-        <div className="sleep-efficiency">
-          <span>MESURE J87</span>
-          <strong>6h12</strong>
-        </div>
+        <div><p className="panel-kicker">JOURNAL DU SOMMEIL · DONNÉES FICTIVES</p><h2>Durée sur les sept dernières périodes</h2></div>
+        <div className="sleep-efficiency"><span>DERNIÈRE VALEUR</span><strong>{current.duration}</strong></div>
       </div>
       <div className="sleep-summary">
-        <div>
-          <span>MESURE EN VOL</span>
-          <strong>6h12</strong>
-        </div>
-        <div>
-          <span>RÉFÉRENCE PRÉ-VOL</span>
-          <strong>7h00</strong>
-        </div>
-        <div className="sleep-delta">
-          <span>ÉCART À LA RÉFÉRENCE</span>
-          <strong>−48 min</strong>
-        </div>
+        <div><span>DERNIÈRE VALEUR</span><strong>{current.duration}</strong></div>
+        <div><span>RÉFÉRENCE ILLUSTRATIVE</span><strong>7h00</strong></div>
+        <div className="sleep-delta"><span>ÉCART CALCULÉ</span><strong>{formatSignedMinutes(sleepDifferenceMinutes)}</strong></div>
       </div>
-      <div className="sleep-bars" aria-label="Durées de sommeil des sept derniers jours">
-        {sleepDays.map((entry) => (
-          <div className="sleep-day" key={entry.day}>
+      <div className="sleep-bars" role="img" aria-label={`Durées de sommeil de démonstration : ${sleepData.days.map((entry) => `${entry.day} ${entry.duration}`).join(", ")}`}>
+        {sleepData.days.map((entry) => (
+          <div className="sleep-day" key={entry.day} aria-hidden="true">
             <span className="sleep-duration">{entry.duration}</span>
-            <div className="sleep-track">
-              <span style={{ height: `${Math.round((entry.minutes / 450) * 100)}%` }} />
-            </div>
+            <div className="sleep-track"><span style={{ height: `${Math.round((entry.minutes / 450) * 100)}%` }} /></div>
             <span className="sleep-day-label">{entry.day}</span>
           </div>
         ))}
       </div>
+      <p className="module-instruction">La comparaison porte sur la dernière valeur affichée ; elle ne calcule pas une tendance clinique ni une moyenne glissante.</p>
     </article>
   );
 }
@@ -93,37 +61,24 @@ function DocumentedCardiacData() {
   return (
     <article className="mental-card cohesion-module">
       <div className="mental-card-header">
-        <div>
-          <p className="panel-kicker">DONNÉES CARDIOVASCULAIRES DOCUMENTÉES</p>
-          <h2>Réponse autonome</h2>
-        </div>
-        <div className="status-pill nominal">
-          <span className="status-dot" />
-          NOMINAL
-        </div>
+        <div><p className="panel-kicker">INDICATEURS CARDIOVASCULAIRES · DÉMO</p><h2>Valeurs complémentaires</h2></div>
+        <div className="status-pill nominal"><span className="status-dot" />ILLUSTRATIF</div>
       </div>
       <div className="cohesion-readings">
         <div>
           <span>VARIABILITÉ CARDIAQUE</span>
-          <strong>
-            54 <small>ms HRV</small>
-          </strong>
-          <div className="flat-meter">
-            <span style={{ width: "63%" }} />
-          </div>
-          <p>RÉFÉRENCE PRÉ-VOL : 51 MS</p>
+          <strong>{cardiovascularData.hrvMs} <small>ms HRV</small></strong>
+          <div className="flat-meter"><span style={{ width: "63%" }} /></div>
+          <p>RÉFÉRENCE DE DÉMO : 51 MS</p>
         </div>
         <div>
           <span>FRÉQUENCE CARDIAQUE AU REPOS</span>
-          <strong>
-            58 <small>bpm</small>
-          </strong>
-          <div className="flat-meter">
-            <span style={{ width: "58%" }} />
-          </div>
-          <p>RÉFÉRENCE PRÉ-VOL : 61 BPM</p>
+          <strong>{cardiovascularData.heartRateBpm} <small>bpm</small></strong>
+          <div className="flat-meter"><span style={{ width: "58%" }} /></div>
+          <p>RÉFÉRENCE DE DÉMO : 61 BPM</p>
         </div>
       </div>
+      <p className="module-instruction">Les valeurs affichées ne proviennent pas d'un dispositif médical connecté.</p>
     </article>
   );
 }
@@ -132,11 +87,8 @@ export default function MentalHealth() {
   return (
     <section className="mental-overview" aria-labelledby="mental-title">
       <div className="section-heading mental-heading">
-        <div>
-          <h2 id="mental-title">Sommeil & données complémentaires</h2>
-          <p>Mesures en vol séparées des références pré-vol</p>
-        </div>
-        <div className="privacy-label">DONNÉES SOURCÉES UNIQUEMENT</div>
+        <div><h2 id="mental-title">Sommeil & données complémentaires</h2><p>Suivi de démonstration · aucun diagnostic ni questionnaire complété</p></div>
+        <div className="privacy-label">DONNÉES FICTIVES · NON MÉDICALES</div>
       </div>
       <div className="mental-grid">
         <ComplementaryData />

@@ -1,16 +1,17 @@
-import MetricCard, { dashboardMetrics } from "@/components/MetricCard";
+import MetricCard from "@/components/MetricCard";
+import { dashboardMetrics } from "@/data/missionData";
 
 export default function Dashboard() {
   return (
     <section className="overview" aria-labelledby="overview-title">
       <div className="section-heading">
         <div>
-          <h2 id="overview-title">Indicateurs clés</h2>
-          <p>Dernières mesures consolidées</p>
+          <h2 id="overview-title">Indicateurs clés de la mission</h2>
+          <p>Valeurs de démonstration · références illustratives · données non connectées</p>
         </div>
-        <div className="telemetry">
+        <div className="telemetry" aria-label="Mode de démonstration, aucune télémétrie active">
           <span className="telemetry-pulse" />
-          TÉLÉMÉTRIE ACTIVE
+          DONNÉES SIMULÉES
         </div>
       </div>
 
