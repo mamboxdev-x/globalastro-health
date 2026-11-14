@@ -1,4 +1,4 @@
-# HELIX — Crew Health System
+# GlobalAstro Health — Crew Health System
 
 **Outil d'aide à la décision pour la santé des équipages en mission longue.**
 *Decision-support software for astronaut health on long-duration missions.*
@@ -13,7 +13,7 @@ Sur une mission longue, les astronautes subissent cinq dangers documentés par l
 
 Le point clé de l'énoncé : **« les astronautes portent eux-mêmes une grande partie de la responsabilité de repérer ces changements »**. Il n'y a pas de médecin à bord, et le signal met des dizaines de minutes à atteindre la Terre.
 
-## Ce que fait HELIX
+## Ce que fait GlobalAstro Health
 
 | Module | Rôle |
 |---|---|
@@ -27,7 +27,7 @@ Le point clé de l'énoncé : **« les astronautes portent eux-mêmes une grande
 
 Un tableau de bord qui affiche des courbes ne répond pas au défi. La question posée par la NASA est : *« quand un résultat justifie-t-il l'attention de l'équipage ou des chirurgiens de vol au sol ? »*
 
-HELIX est construit autour de cette question : chaque indicateur est comparé à une référence, chaque dépassement produit une **action corrective**, et l'escalade vers le sol tient compte du délai réel de communication.
+GlobalAstro Health est construit autour de cette question : chaque indicateur est comparé à une référence, chaque dépassement produit une **action corrective**, et l'escalade vers le sol tient compte du délai réel de communication.
 
 ## Ce qui tourne, ce qui est simulé
 

@@ -30,8 +30,8 @@ export default function Sidebar({ active, onNavigate }: SidebarProps) {
           <span />
         </div>
         <div>
-          <div className="brand-name">HELIX</div>
-          <div className="brand-subtitle">CREW HEALTH SYSTEM</div>
+          <div className="brand-name">GLOBALASTRO</div>
+          <div className="brand-subtitle">HEALTH SYSTEM</div>
         </div>
       </div>
 

@@ -44,7 +44,7 @@ export default function App() {
         {renderScreen()}
 
         <footer className="footer">
-          <span>HELIX v1.0.4</span>
+          <span>GlobalAstro Health v1.0.4</span>
           <span className="footer-center">DONNÉES LOCALES CHIFFRÉES</span>
           <span>{screenConfig[active].module}</span>
         </footer>

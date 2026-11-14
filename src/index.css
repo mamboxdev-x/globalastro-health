@@ -125,8 +125,8 @@
 }
 
 .brand-name {
-  font: 600 22px/1 var(--mono);
-  letter-spacing: 0.17em;
+  font: 600 17px/1 var(--mono);
+  letter-spacing: 0.06em;
 }
 
 .brand-subtitle {

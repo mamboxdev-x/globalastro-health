@@ -1,7 +1,9 @@
 {
-  "description": "A dark-mode health dashboard for astronauts to monitor vital signs, sleep, mood, exercise load, and radiation exposure during missions.",
+  "title": "GlobalAstro Health — Crew Health System",
+  "description": "Outil d'aide à la décision pour la santé des équipages en mission longue : suivi physiologique, osseux, cardiovasculaire et comportemental, hiérarchisation des alertes et prise en compte du délai de communication Terre-équipage. NASA Space Apps Challenge 2026.",
+  "language": "fr",
   "robots": {
-    "index": false
+    "index": true
   },
   "accessibility": {
     "addBypassLinks": false,
