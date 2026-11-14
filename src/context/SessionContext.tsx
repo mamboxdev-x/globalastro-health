@@ -20,6 +20,7 @@ type SessionContextValue = Session & {
   connecter: (role: Role, identifiant: string) => void;
   deconnecter: () => void;
   basculeTheme: () => void;
+  definirTheme: (theme: "clair" | "sombre") => void;
   theme: "clair" | "sombre";
 };
 
@@ -79,9 +80,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setTheme((actuel) => (actuel === "sombre" ? "clair" : "sombre"));
   }, []);
 
+  const definirTheme = useCallback((choix: "clair" | "sombre") => {
+    setTheme(choix);
+  }, []);
+
   const valeur = useMemo<SessionContextValue>(
-    () => ({ ...session, connecter, deconnecter, basculeTheme, theme }),
-    [session, connecter, deconnecter, basculeTheme, theme],
+    () => ({ ...session, connecter, deconnecter, basculeTheme, definirTheme, theme }),
+    [session, connecter, deconnecter, basculeTheme, definirTheme, theme],
   );
 
   return <SessionContext.Provider value={valeur}>{children}</SessionContext.Provider>;

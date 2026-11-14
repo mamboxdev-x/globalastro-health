@@ -7,7 +7,7 @@ const CHOIX: { role: Role; titre: string; texte: string }[] = [
 ];
 
 export default function LoginScreen() {
-  const { connecter } = useSession();
+  const { connecter, theme } = useSession();
   const [role, setRole] = useState<Role>("astro");
   const [identifiant, setIdentifiant] = useState("cdr.mbaye");
   const [motDePasse, setMotDePasse] = useState("demo");
@@ -33,13 +33,11 @@ export default function LoginScreen() {
         }}
       >
         <aside className="u-login-aside">
-          <div className="u-brand" style={{ padding: 0, border: 0 }}>
-            <div className="u-brand-mark" aria-hidden="true" />
-            <div>
-              <div className="u-brand-name">GlobalAstro</div>
-              <div className="u-brand-sub">Santé équipage</div>
-            </div>
-          </div>
+          <img
+            className="u-login-logo"
+            src={theme === "sombre" ? "/logo-sombre.png" : "/logo-clair.png"}
+            alt="GlobalAstro Health — la santé des astronautes"
+          />
 
           <div>
             <p className="u-panel-kicker">Mission en cours</p>

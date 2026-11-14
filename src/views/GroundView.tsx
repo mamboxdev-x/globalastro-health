@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import RailCompte from "@/components/RailCompte";
 import { useSession } from "@/context/SessionContext";
 import { currentSleepDuration, missionDay, sleepData, sleepDifferenceMinutes } from "@/data/missionData";
 
@@ -29,7 +30,7 @@ const EQUIPAGE = [
 const REFERENCE_MINUTES = 420;
 
 export default function GroundView() {
-  const { deconnecter, basculeTheme, theme, identifiant } = useSession();
+  const { theme } = useSession();
   const [menuOuvert, setMenuOuvert] = useState(false);
 
   // tiroir de navigation : Échap referme, et le fond ne défile pas tant qu'il est ouvert
@@ -51,7 +52,12 @@ export default function GroundView() {
     <div className={`u-app ${menuOuvert ? "is-open" : ""}`}>
       <aside className="u-rail" id="app-nav">
         <div className="u-brand">
-          <div className="u-brand-mark" aria-hidden="true" />
+          <img
+            className="u-brand-logo"
+            src={theme === "sombre" ? "/marque-sombre.png" : "/marque-clair.png"}
+            alt=""
+            aria-hidden="true"
+          />
           <div>
             <div className="u-brand-name">GlobalAstro</div>
             <div className="u-brand-sub">Poste sol</div>
@@ -75,13 +81,7 @@ export default function GroundView() {
           </button>
         </nav>
 
-        <div className="u-railfoot">
-          <div className="u-railfoot-row">
-            <span className="u-dot is-alert" aria-hidden="true" />
-            <span>Station sol · liaison par fenêtres</span>
-          </div>
-          <div className="u-railfoot-note">aucune action en direct</div>
-        </div>
+        <RailCompte statut="Station sol · liaison par fenêtres" note="aucune action en direct" />
       </aside>
 
       <div className="u-scrim" onClick={() => setMenuOuvert(false)} aria-hidden="true" />
@@ -107,18 +107,11 @@ export default function GroundView() {
             </div>
           </div>
           <div className="u-top-actions">
-            <span className="u-chip">{identifiant || "médecin au sol"}</span>
             <span className="u-chip is-warn">
               <span className="u-dot is-warn" aria-hidden="true" />
               <span className="u-wide-only">Prototype · données simulées</span>
               <span className="u-narrow-only">Démo</span>
             </span>
-            <button type="button" className="u-btn is-quiet" onClick={basculeTheme}>
-              {theme === "sombre" ? "Thème clair" : "Thème sombre"}
-            </button>
-            <button type="button" className="u-btn is-quiet" onClick={deconnecter}>
-              Quitter
-            </button>
           </div>
         </header>
 

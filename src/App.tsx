@@ -30,7 +30,7 @@ function ActiveScreen({ active }: { active: ScreenName }) {
 }
 
 function AppShell() {
-  const { role, identifiant, deconnecter, basculeTheme, theme } = useSession();
+  const { role } = useSession();
   const [active, setActive] = useState<ScreenName>("Tableau de bord");
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [utcNow, setUtcNow] = useState(() => new Date());
@@ -90,18 +90,11 @@ function AppShell() {
           </div>
 
           <div className="u-top-actions">
-            <span className="u-chip">{identifiant || "astronaute"}</span>
             <span className="u-chip is-warn">
               <span className="u-dot is-warn" aria-hidden="true" />
               <span className="u-wide-only">Prototype · données simulées</span>
               <span className="u-narrow-only">Démo</span>
             </span>
-            <button type="button" className="u-btn is-quiet" onClick={basculeTheme}>
-              {theme === "sombre" ? "Thème clair" : "Thème sombre"}
-            </button>
-            <button type="button" className="u-btn is-quiet" onClick={deconnecter}>
-              Quitter
-            </button>
             <div className="u-clock">
               <span>UTC</span>
               <b>{utcNow.toISOString().slice(11, 16)}</b>

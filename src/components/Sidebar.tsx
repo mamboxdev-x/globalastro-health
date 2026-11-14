@@ -1,4 +1,6 @@
 import { NavIcon, type IconName } from "@/assets/NavIcons";
+import RailCompte from "@/components/RailCompte";
+import { useSession } from "@/context/SessionContext";
 import { missionDay } from "@/data/missionData";
 
 export type ScreenName =
@@ -22,10 +24,17 @@ type SidebarProps = {
 };
 
 export default function Sidebar({ active, onNavigate }: SidebarProps) {
+  const { theme } = useSession();
+
   return (
     <aside className="u-rail" id="app-nav">
       <div className="u-brand">
-        <div className="u-brand-mark" aria-hidden="true" />
+        <img
+          className="u-brand-logo"
+          src={theme === "sombre" ? "/marque-sombre.png" : "/marque-clair.png"}
+          alt=""
+          aria-hidden="true"
+        />
         <div>
           <div className="u-brand-name">GlobalAstro</div>
           <div className="u-brand-sub">Santé équipage</div>
@@ -53,13 +62,10 @@ export default function Sidebar({ active, onNavigate }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="u-railfoot">
-        <div className="u-railfoot-row">
-          <span className="u-dot is-warn" aria-hidden="true" />
-          <span>Poste à bord · jour {missionDay}</span>
-        </div>
-        <div className="u-railfoot-note">démonstration · aucune donnée réelle</div>
-      </div>
+      <RailCompte
+        statut={`Poste à bord · jour ${missionDay}`}
+        note="démonstration · aucune donnée réelle"
+      />
     </aside>
   );
 }
