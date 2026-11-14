@@ -474,8 +474,12 @@ select.u-input { padding-right: 28px; }
 }
 
 @media (max-width: 560px) {
-  .u-login { padding: 18px 12px; }
+  .u-login { padding: 14px 12px; align-items: start; }
   .u-login-card { border-radius: var(--u-radius-lg); }
+  .u-login-aside { padding: 16px 15px; gap: 13px; }
+  .u-login-main { padding: 18px 15px 16px; }
+  .u-login-logo { max-width: 168px; }
+  .u-login-facts { gap: 7px; }
   .u-shead { flex-wrap: wrap; }
   .u-shead .right { margin-left: 0; }
   .u-bars { gap: 4px; }

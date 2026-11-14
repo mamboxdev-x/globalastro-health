@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession, type Role } from "@/context/SessionContext";
 
 const CHOIX: { role: Role; titre: string; texte: string }[] = [
@@ -13,6 +13,13 @@ export default function LoginScreen() {
   const [motDePasse, setMotDePasse] = useState("demo");
   const [voir, setVoir] = useState(false);
   const [erreur, setErreur] = useState("");
+
+  // Ceinture et bretelles : si la connexion s'affiche alors qu'un tiroir de navigation
+  // était ouvert, l'interdiction de défiler posée sur le body doit tomber — sinon le
+  // choix du rôle devient inatteignable sur téléphone.
+  useEffect(() => {
+    document.body.style.overflow = "";
+  }, []);
 
   const soumettre = () => {
     if (identifiant.trim().length < 3) {

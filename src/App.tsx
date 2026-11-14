@@ -40,6 +40,12 @@ function AppShell() {
     return () => window.clearInterval(timer);
   }, []);
 
+  // le tiroir n'existe que dans la coquille : au changement de rôle (déconnexion),
+  // il doit se refermer, sinon l'interdiction de défiler reste posée sur le body.
+  useEffect(() => {
+    setMenuOuvert(false);
+  }, [role]);
+
   // tiroir de navigation : Échap referme, et le fond ne défile pas tant qu'il est ouvert
   useEffect(() => {
     if (!menuOuvert) return;
