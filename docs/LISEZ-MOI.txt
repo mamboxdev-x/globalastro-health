@@ -1,0 +1,67 @@
+HELIX — PAQUET PRÊT À L'EMPLOI
+NASA Space Apps Challenge 2026 — équipe K2/\Labs
+================================================================
+
+Ce paquet a été préparé pour vous éviter les pièges Windows. Il contient DEUX choses :
+
+  projet\        les sources React (Vite + Tailwind), AVEC le renommage déjà fait
+  site_compile\  le site DÉJÀ COMPILÉ — utilisable sans npm, sans rien installer
+
+Vous n'avez rien à renommer : le dossier s'appelle déjà « .figma » (le piège du zip
+d'origine, où il s'appelait « figma », est corrigé).
+
+
+--------------------------------------------------------------
+1. VOIR LE SITE TOUT DE SUITE (le plus simple)
+--------------------------------------------------------------
+Double-clique sur  VOIR_LE_SITE.cmd
+(il démarre un petit serveur local et ouvre le navigateur — la page ne s'ouvre pas
+ correctement par double-clic direct, car les modules JavaScript ont besoin d'un
+ serveur HTTP.)
+
+
+--------------------------------------------------------------
+2. TRAVAILLER SUR LE CODE (mode développeur)
+--------------------------------------------------------------
+Double-clique sur  LANCER_LE_PROJET.cmd
+La première fois, ça installe les paquets (~30 s) puis démarre le serveur.
+L'adresse s'affiche, en général :  http://localhost:5173
+
+
+--------------------------------------------------------------
+3. DÉPLOYER SUR L'HÉBERGEMENT / LE DOMAINE
+--------------------------------------------------------------
+Le contenu de  site_compile\  EST le site : on copie ces fichiers tels quels sur
+l'hébergement GoDaddy. Ou on relance un build avec :
+
+    cd projet
+    npm.cmd run build
+
+
+--------------------------------------------------------------
+LES PIÈGES WINDOWS (à ne pas redécouvrir)
+--------------------------------------------------------------
+* PowerShell bloque npm.ps1 :
+      « Impossible de charger le fichier npm.ps1, car l'exécution de scripts
+        est désactivée sur ce système »
+  → soit taper  npm.cmd  au lieu de  npm
+  → soit, une fois pour toutes, sans administrateur :
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+* npm doit être lancé DEPUIS le dossier du projet (celui qui contient package.json).
+  Sinon :  « Could not read package.json ... ENOENT ».
+  Vérifier où on est :  pwd   ou   dir
+
+* Le dossier « .figma » commence par un point : il est invisible dans l'explorateur
+  Windows par défaut. Ne le supprimez pas, vite.config.ts en dépend.
+
+
+--------------------------------------------------------------
+CE QUE CE PAQUET EST — ET CE QU'IL N'EST PAS
+--------------------------------------------------------------
+C'est une INTERFACE avec des données écrites en dur : aucun appel réseau, aucun
+backend, pas de données NASA réelles. Les écrans fonctionnent, les chiffres ne sont
+pas encore sourcés.
+
+À dire devant le jury : les lignes « NON RENS. » (densité osseuse, acuité visuelle,
+CO2) sont un CHOIX, pas un manque — l'outil refuse d'inventer une valeur. Gardez ça.

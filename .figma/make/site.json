@@ -1,0 +1,10 @@
+{
+  "description": "A dark-mode health dashboard for astronauts to monitor vital signs, sleep, mood, exercise load, and radiation exposure during missions.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
