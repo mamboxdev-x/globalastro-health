@@ -229,6 +229,8 @@ input { font: inherit; }
   font-size: 11.5px; color: var(--u-ink-3); background: var(--u-surface-2);
   border-radius: 0 0 var(--u-radius-lg) var(--u-radius-lg);
 }
+.u-btn:disabled { opacity: .45; cursor: not-allowed; }
+select.u-input { padding-right: 28px; }
 .u-panel.is-alert { border-color: #EFC9C5; }
 .u-panel.is-alert .u-panel-head { background: var(--u-alert-soft); border-bottom-color: #F2D5D2; border-radius: var(--u-radius-lg) var(--u-radius-lg) 0 0; }
 
