@@ -67,7 +67,7 @@ export default function GroundView() {
         </div>
       </aside>
 
-      <main className="u-main">
+      <main className="u-main" id="main-content">
         <header className="u-top">
           <div>
             <div className="u-title">Équipage · {EQUIPAGE.length} membres</div>

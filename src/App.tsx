@@ -46,7 +46,7 @@ function AppShell() {
     <div className="u-app">
       <Sidebar active={active} onNavigate={setActive} />
 
-      <main className="u-main">
+      <main className="u-main" id="main-content">
         <header className="u-top">
           <div>
             <div className="u-title">{active}</div>
