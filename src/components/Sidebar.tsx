@@ -23,7 +23,7 @@ type SidebarProps = {
 
 export default function Sidebar({ active, onNavigate }: SidebarProps) {
   return (
-    <aside className="u-rail">
+    <aside className="u-rail" id="app-nav">
       <div className="u-brand">
         <div className="u-brand-mark" aria-hidden="true" />
         <div>

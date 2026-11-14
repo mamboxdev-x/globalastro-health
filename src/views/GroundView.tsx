@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useSession } from "@/context/SessionContext";
 import { currentSleepDuration, missionDay, sleepData, sleepDifferenceMinutes } from "@/data/missionData";
 
@@ -29,10 +30,26 @@ const REFERENCE_MINUTES = 420;
 
 export default function GroundView() {
   const { deconnecter, basculeTheme, theme, identifiant } = useSession();
+  const [menuOuvert, setMenuOuvert] = useState(false);
+
+  // tiroir de navigation : Échap referme, et le fond ne défile pas tant qu'il est ouvert
+  useEffect(() => {
+    if (!menuOuvert) return;
+    const surTouche = (evenement: KeyboardEvent) => {
+      if (evenement.key === "Escape") setMenuOuvert(false);
+    };
+    window.addEventListener("keydown", surTouche);
+    const defilementInitial = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", surTouche);
+      document.body.style.overflow = defilementInitial;
+    };
+  }, [menuOuvert]);
 
   return (
-    <div className="u-app">
-      <aside className="u-rail">
+    <div className={`u-app ${menuOuvert ? "is-open" : ""}`}>
+      <aside className="u-rail" id="app-nav">
         <div className="u-brand">
           <div className="u-brand-mark" aria-hidden="true" />
           <div>
@@ -41,7 +58,7 @@ export default function GroundView() {
           </div>
         </div>
 
-        <nav className="u-nav" aria-label="Navigation du poste sol">
+        <nav className="u-nav" aria-label="Navigation du poste sol" onClick={() => setMenuOuvert(false)}>
           <p className="u-nav-label">Surveillance</p>
           <button type="button" className="u-nav-btn is-active">
             <span>Équipage</span>
@@ -67,8 +84,22 @@ export default function GroundView() {
         </div>
       </aside>
 
+      <div className="u-scrim" onClick={() => setMenuOuvert(false)} aria-hidden="true" />
+
       <main className="u-main" id="main-content">
         <header className="u-top">
+          <button
+            type="button"
+            className="u-burger"
+            aria-label="Ouvrir le menu des modules"
+            aria-expanded={menuOuvert}
+            aria-controls="app-nav"
+            onClick={() => setMenuOuvert((ouvert) => !ouvert)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
           <div>
             <div className="u-title">Équipage · {EQUIPAGE.length} membres</div>
             <div className="u-sub">
@@ -79,7 +110,8 @@ export default function GroundView() {
             <span className="u-chip">{identifiant || "médecin au sol"}</span>
             <span className="u-chip is-warn">
               <span className="u-dot is-warn" aria-hidden="true" />
-              Prototype · données simulées
+              <span className="u-wide-only">Prototype · données simulées</span>
+              <span className="u-narrow-only">Démo</span>
             </span>
             <button type="button" className="u-btn is-quiet" onClick={basculeTheme}>
               {theme === "sombre" ? "Thème clair" : "Thème sombre"}

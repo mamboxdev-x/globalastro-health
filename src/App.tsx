@@ -32,6 +32,7 @@ function ActiveScreen({ active }: { active: ScreenName }) {
 function AppShell() {
   const { role, identifiant, deconnecter, basculeTheme, theme } = useSession();
   const [active, setActive] = useState<ScreenName>("Tableau de bord");
+  const [menuOuvert, setMenuOuvert] = useState(false);
   const [utcNow, setUtcNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -39,15 +40,48 @@ function AppShell() {
     return () => window.clearInterval(timer);
   }, []);
 
+  // tiroir de navigation : Échap referme, et le fond ne défile pas tant qu'il est ouvert
+  useEffect(() => {
+    if (!menuOuvert) return;
+    const surTouche = (evenement: KeyboardEvent) => {
+      if (evenement.key === "Escape") setMenuOuvert(false);
+    };
+    window.addEventListener("keydown", surTouche);
+    const defilementInitial = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", surTouche);
+      document.body.style.overflow = defilementInitial;
+    };
+  }, [menuOuvert]);
+
+  const naviguer = (ecran: ScreenName) => {
+    setActive(ecran);
+    setMenuOuvert(false);
+  };
+
   if (!role) return <LoginScreen />;
   if (role === "sol") return <GroundView />;
 
   return (
-    <div className="u-app">
-      <Sidebar active={active} onNavigate={setActive} />
+    <div className={`u-app ${menuOuvert ? "is-open" : ""}`}>
+      <Sidebar active={active} onNavigate={naviguer} />
+      <div className="u-scrim" onClick={() => setMenuOuvert(false)} aria-hidden="true" />
 
       <main className="u-main" id="main-content">
         <header className="u-top">
+          <button
+            type="button"
+            className="u-burger"
+            aria-label="Ouvrir le menu des modules"
+            aria-expanded={menuOuvert}
+            aria-controls="app-nav"
+            onClick={() => setMenuOuvert((ouvert) => !ouvert)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
           <div>
             <div className="u-title">{active}</div>
             <div className="u-sub">
@@ -59,7 +93,8 @@ function AppShell() {
             <span className="u-chip">{identifiant || "astronaute"}</span>
             <span className="u-chip is-warn">
               <span className="u-dot is-warn" aria-hidden="true" />
-              Prototype · données simulées
+              <span className="u-wide-only">Prototype · données simulées</span>
+              <span className="u-narrow-only">Démo</span>
             </span>
             <button type="button" className="u-btn is-quiet" onClick={basculeTheme}>
               {theme === "sombre" ? "Thème clair" : "Thème sombre"}
