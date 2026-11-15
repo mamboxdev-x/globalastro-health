@@ -16,6 +16,8 @@ const env = (import.meta as unknown as { env?: Record<string, string | undefined
 
 export const ADRESSE_BORD = env.VITE_GATEWAY_URL ?? "http://localhost:8000";
 export const ADRESSE_SOL = env.VITE_GROUND_URL ?? "http://localhost:9000";
+/** Module central HELIX (receiver.py) : capteurs simulés, seuils, base CSV. */
+export const ADRESSE_MODULE = env.VITE_HELIX_URL ?? "http://localhost:8000";
 const PIN_ASTRO = env.VITE_ASTRO_PIN ?? "1234";
 const PIN_MEDECIN = env.VITE_DOCTOR_PIN ?? "doctor";
 
@@ -143,7 +145,35 @@ export const envoyerConsigneSol = (astronaute: string, texte: string) =>
 
 /* --------------------------------------------------------------- sonde ----- */
 
-export type EtatBackend = { bord: boolean; sol: boolean; mode: "live" | "demo" };
+/* --------------------------------------------------- module central ------- */
+
+export type MesureModule = {
+  date_utc: string;
+  capteur: string;
+  parametre: string;
+  valeur: string;
+  unite: string;
+  mode: string;
+  statut: string;
+};
+
+export type HistoriqueModule = { parametre: string | null; nombre: number; points: MesureModule[] };
+
+export const moduleSante = () => appel<{ ok: boolean }>(ADRESSE_MODULE, "/sante", {});
+export const moduleDerniere = () =>
+  appel<Record<string, MesureModule>>(ADRESSE_MODULE, "/derniere", {}, { delai: 2500 });
+export const moduleHistorique = (parametre: string, n = 120) =>
+  appel<HistoriqueModule>(
+    ADRESSE_MODULE,
+    `/historique?parametre=${encodeURIComponent(parametre)}&n=${n}`,
+    {},
+    { delai: 3000 },
+  );
+export const moduleParametres = () => appel<string[]>(ADRESSE_MODULE, "/parametres", {});
+
+/* --------------------------------------------------------------- sonde ----- */
+
+export type EtatBackend = { bord: boolean; sol: boolean; module: boolean; mode: "live" | "demo" };
 
 /**
  * La sonde n'est active que si un backend est réellement joignable :
@@ -155,13 +185,14 @@ export type EtatBackend = { bord: boolean; sol: boolean; mode: "live" | "demo" }
 const hoteLocal =
   typeof window !== "undefined" && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
 
-export const SONDE_ACTIVE = Boolean(env.VITE_GATEWAY_URL || env.VITE_GROUND_URL) || hoteLocal;
+export const SONDE_ACTIVE = Boolean(env.VITE_GATEWAY_URL || env.VITE_GROUND_URL || env.VITE_HELIX_URL) || hoteLocal;
 
-/** Interroge les deux services : sert à savoir si l'interface parle au vrai backend. */
+/** Interroge les trois services : sert à savoir si l'interface parle à du vrai matériel. */
 export async function sonderBackend(): Promise<EtatBackend> {
-  if (!SONDE_ACTIVE) return { bord: false, sol: false, mode: "demo" };
-  const [bord, sol] = await Promise.all([lienBord(), equipageSol()]);
-  return { bord: bord !== null, sol: sol !== null, mode: bord !== null || sol !== null ? "live" : "demo" };
+  if (!SONDE_ACTIVE) return { bord: false, sol: false, module: false, mode: "demo" };
+  const [bord, sol, module] = await Promise.all([lienBord(), equipageSol(), moduleSante()]);
+  const vivant = bord !== null || sol !== null || module !== null;
+  return { bord: bord !== null, sol: sol !== null, module: module !== null, mode: vivant ? "live" : "demo" };
 }
 
 /** Libellés lisibles pour l'interface. */

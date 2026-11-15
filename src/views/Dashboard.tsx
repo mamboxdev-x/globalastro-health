@@ -1,4 +1,5 @@
 import MetricCard from "@/components/MetricCard";
+import ModuleCentral from "@/components/ModuleCentral";
 import { dashboardMetrics, missionDay } from "@/data/missionData";
 
 export default function Dashboard() {
@@ -20,6 +21,8 @@ export default function Dashboard() {
           <MetricCard key={metric.id} metric={metric} index={index} />
         ))}
       </div>
+
+      <ModuleCentral />
     </>
   );
 }

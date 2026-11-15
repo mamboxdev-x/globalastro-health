@@ -6,13 +6,23 @@ const CHOIX: { role: Role; titre: string; texte: string }[] = [
   { role: "sol", titre: "Médecin au sol", texte: "Sur Terre. Suit l’équipage et prépare des consignes." },
 ];
 
+type Mode = "connexion" | "inscription";
+
 export default function LoginScreen() {
-  const { connecter, theme } = useSession();
+  const { connecter, creerCompte, comptes, theme } = useSession();
+  const [mode, setMode] = useState<Mode>("connexion");
   const [role, setRole] = useState<Role>("astro");
   const [identifiant, setIdentifiant] = useState("cdr.mbaye");
   const [motDePasse, setMotDePasse] = useState("demo");
   const [voir, setVoir] = useState(false);
   const [erreur, setErreur] = useState("");
+  const [succes, setSucces] = useState("");
+
+  // Profil du nouvel astronaute : ces valeurs alimentent la simulation des capteurs.
+  const [poids, setPoids] = useState("78");
+  const [taille, setTaille] = useState("1.82");
+  const [sexe, setSexe] = useState<"H" | "F">("H");
+  const [service, setService] = useState("Centre de contrôle");
 
   // Ceinture et bretelles : si la connexion s'affiche alors qu'un tiroir de navigation
   // était ouvert, l'interdiction de défiler posée sur le body doit tomber — sinon le
@@ -21,14 +31,61 @@ export default function LoginScreen() {
     document.body.style.overflow = "";
   }, []);
 
+  const basculerMode = () => {
+    setMode((actuel) => (actuel === "connexion" ? "inscription" : "connexion"));
+    setErreur("");
+    setSucces("");
+  };
+
   const soumettre = () => {
+    setErreur("");
+    setSucces("");
+
     if (identifiant.trim().length < 3) {
       setErreur("Identifiant trop court : au moins 3 caractères.");
       return;
     }
-    setErreur("");
-    connecter(role, identifiant.trim());
+
+    if (mode === "inscription") {
+      const poidsNombre = Number.parseFloat(poids.replace(",", "."));
+      const tailleNombre = Number.parseFloat(taille.replace(",", "."));
+
+      if (role === "astro" && (!Number.isFinite(poidsNombre) || !Number.isFinite(tailleNombre))) {
+        setErreur("Poids et taille doivent être des nombres (ex. 78 et 1.82).");
+        return;
+      }
+
+      const creation = creerCompte({
+        identifiant: identifiant.trim(),
+        motDePasse,
+        role,
+        profil:
+          role === "astro"
+            ? { poidsKg: poidsNombre, tailleM: tailleNombre, sexe }
+            : { service: service.trim() },
+      });
+
+      if (!creation.ok) {
+        setErreur(creation.message ?? "Création impossible.");
+        return;
+      }
+
+      const entree = connecter(role, identifiant.trim(), motDePasse);
+      if (!entree.ok) {
+        setErreur(entree.message ?? "Connexion impossible.");
+        return;
+      }
+      return;
+    }
+
+    const entree = connecter(role, identifiant.trim(), motDePasse);
+    if (!entree.ok) {
+      setErreur(entree.message ?? "Connexion impossible.");
+      return;
+    }
   };
+
+  const inscription = mode === "inscription";
 
   return (
     <div className="u-login">
@@ -68,16 +125,28 @@ export default function LoginScreen() {
                 Fonctionne <b>hors ligne</b> : les mesures restent à bord et repartent à la fenêtre suivante.
               </span>
             </div>
+            {comptes.length > 0 && (
+              <div className="u-fact">
+                <span className="u-dot" aria-hidden="true" style={{ marginTop: 5 }} />
+                <span>
+                  <b>{comptes.length}</b> compte(s) créé(s) dans ce navigateur.
+                </span>
+              </div>
+            )}
           </div>
         </aside>
 
         <div className="u-login-main">
-          <div className="u-h">Connexion</div>
-          <p>Choisissez votre rôle : l’interface change entièrement.</p>
+          <div className="u-h">{inscription ? "Créer un compte" : "Connexion"}</div>
+          <p>
+            {inscription
+              ? "Le compte est conservé dans ce navigateur : c’est un prototype, il n’y a pas de serveur d’identité."
+              : "Choisissez votre rôle : l’interface change entièrement."}
+          </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 20 }}>
             <label className="u-field">
-              <span className="u-label">Identifiant de mission</span>
+              <span className="u-label">{role === "astro" ? "Identifiant de mission" : "Identifiant du médecin"}</span>
               <input
                 className="u-input"
                 value={identifiant}
@@ -93,7 +162,7 @@ export default function LoginScreen() {
                   className="u-input"
                   type={voir ? "text" : "password"}
                   value={motDePasse}
-                  autoComplete="current-password"
+                  autoComplete={inscription ? "new-password" : "current-password"}
                   onChange={(event) => setMotDePasse(event.target.value)}
                 />
                 <button type="button" className="u-btn" onClick={() => setVoir((v) => !v)}>
@@ -104,7 +173,7 @@ export default function LoginScreen() {
 
             <div>
               <p className="u-label" style={{ marginBottom: 6 }}>
-                Rôle dans la mission
+                {inscription ? "Type de compte" : "Rôle dans la mission"}
               </p>
               <div className="u-roles" role="radiogroup" aria-label="Rôle dans la mission">
                 {CHOIX.map((choix) => (
@@ -126,18 +195,68 @@ export default function LoginScreen() {
               </div>
             </div>
 
+            {inscription && role === "astro" && (
+              <>
+                <p className="u-note" style={{ margin: 0 }}>
+                  Ces trois valeurs alimentent la simulation des capteurs (receiver + capteurs Python) : elles
+                  servent au poids, à la masse maigre et au débit cardiaque.
+                </p>
+                <span style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                  <label className="u-field">
+                    <span className="u-label">Poids (kg)</span>
+                    <input className="u-input" value={poids} onChange={(event) => setPoids(event.target.value)} />
+                  </label>
+                  <label className="u-field">
+                    <span className="u-label">Taille (m)</span>
+                    <input className="u-input" value={taille} onChange={(event) => setTaille(event.target.value)} />
+                  </label>
+                  <label className="u-field">
+                    <span className="u-label">Sexe</span>
+                    <select className="u-input" value={sexe} onChange={(event) => setSexe(event.target.value as "H" | "F")}>
+                      <option value="H">H</option>
+                      <option value="F">F</option>
+                    </select>
+                  </label>
+                </span>
+              </>
+            )}
+
+            {inscription && role === "sol" && (
+              <label className="u-field">
+                <span className="u-label">Service</span>
+                <input className="u-input" value={service} onChange={(event) => setService(event.target.value)} />
+              </label>
+            )}
+
             {erreur && (
               <div className="u-info" role="alert">
                 <span>{erreur}</span>
               </div>
             )}
+            {succes && (
+              <div className="u-info" role="status" style={{ background: "var(--u-ok-soft)", color: "var(--u-ok)" }}>
+                <span>{succes}</span>
+              </div>
+            )}
 
             <button className="u-btn is-primary is-wide" type="submit" style={{ height: 36 }}>
-              Se connecter
+              {inscription ? "Créer le compte et entrer" : "Se connecter"}
+            </button>
+
+            <button
+              type="button"
+              className="u-btn is-quiet is-wide"
+              onClick={basculerMode}
+              style={{ textDecoration: "underline" }}
+            >
+              {inscription ? "J’ai déjà un compte" : "Créer un compte astronaute ou médecin"}
             </button>
           </div>
 
           <p style={{ fontSize: 11, color: "var(--u-ink-3)", marginTop: 16, lineHeight: 1.5 }}>
+            {inscription && comptes.length > 0
+              ? `Comptes existants : ${comptes.map((c) => `${c.identifiant} (${c.role === "astro" ? "astronaute" : "médecin"})`).join(", ")}. `
+              : ""}
             Prototype d’aide à la décision : aucune donnée médicale réelle n’est traitée. NASA Space Apps 2026 ·
             équipe K2/\Labs.
           </p>

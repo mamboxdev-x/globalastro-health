@@ -28,12 +28,13 @@ type ValeurBackend = EtatBackend & { verifier: () => void };
 const BackendContext = createContext<ValeurBackend>({
   bord: false,
   sol: false,
+  module: false,
   mode: "demo",
   verifier: () => {},
 });
 
 export function BackendProvider({ children }: { children: ReactNode }) {
-  const [etat, setEtat] = useState<EtatBackend>({ bord: false, sol: false, mode: "demo" });
+  const [etat, setEtat] = useState<EtatBackend>({ bord: false, sol: false, module: false, mode: "demo" });
   const monte = useRef(true);
 
   const verifier = useCallback(() => {
@@ -121,4 +122,19 @@ export function useEquipageSol(actif: boolean, intervalle = 8_000): MembreSol[] 
 
 export function useMessagesSol(actif: boolean, astronaute: string, version = 0, intervalle = 8_000): MessageSol[] | null {
   return useRessource(actif, `messages-sol-${astronaute}-${version}`, () => api.messagesSol(astronaute), intervalle);
+}
+
+/* --------------------------------------------------- module central ------- */
+
+export function useModuleDerniere(actif: boolean, intervalle = 3_000) {
+  return useRessource(actif, "module-derniere", () => api.moduleDerniere(), intervalle);
+}
+
+export function useModuleHistorique(actif: boolean, parametre: string, n = 120, intervalle = 4_000) {
+  return useRessource(
+    actif,
+    `module-historique-${parametre}-${n}`,
+    () => api.moduleHistorique(parametre, n),
+    intervalle,
+  );
 }
