@@ -143,6 +143,24 @@ export const envoyerConsigneSol = (astronaute: string, texte: string) =>
     corps: { astronaut_id: astronaute, text: texte },
   });
 
+export type MessageSolEtiquette = MessageSol & { astronaut_id: string };
+
+/**
+ * Les messages de tous les destinataires en un seul lot. Sans ça, l'écran n'interroge
+ * que le destinataire sélectionné : les consignes adressées aux autres disparaissent
+ * dès qu'on change de destinataire.
+ */
+export async function messagesSolTous(astronautes: string[]): Promise<MessageSolEtiquette[]> {
+  if (astronautes.length === 0) return [];
+  const lots = await Promise.all(
+    astronautes.map(async (astronaute) => {
+      const messages = await messagesSol(astronaute);
+      return (messages ?? []).map((message) => ({ ...message, astronaut_id: astronaute }));
+    }),
+  );
+  return lots.flat().sort((a, b) => (a.ts < b.ts ? 1 : -1));
+}
+
 /* --------------------------------------------------------------- sonde ----- */
 
 /* --------------------------------------------------- module central ------- */

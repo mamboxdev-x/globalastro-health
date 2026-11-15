@@ -124,6 +124,17 @@ export function useMessagesSol(actif: boolean, astronaute: string, version = 0, 
   return useRessource(actif, `messages-sol-${astronaute}-${version}`, () => api.messagesSol(astronaute), intervalle);
 }
 
+/** Les consignes de tout l'équipage : la liste ne dépend plus du destinataire choisi. */
+export function useMessagesSolTous(actif: boolean, astronautes: string[], version = 0, intervalle = 8_000) {
+  const cle = astronautes.join(",");
+  return useRessource(
+    actif,
+    `messages-sol-tous-${cle}-${version}`,
+    () => api.messagesSolTous(astronautes),
+    intervalle,
+  );
+}
+
 /* --------------------------------------------------- module central ------- */
 
 export function useModuleDerniere(actif: boolean, intervalle = 3_000) {

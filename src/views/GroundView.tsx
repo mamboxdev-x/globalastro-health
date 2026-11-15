@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import RailCompte from "@/components/RailCompte";
-import { useBackend, useEquipageSol, useMessagesSol } from "@/context/BackendContext";
+import { useBackend, useEquipageSol, useMessagesSolTous } from "@/context/BackendContext";
 import { useSession, type Compte } from "@/context/SessionContext";
 import { envoyerConsigneSol, formatDate } from "@/data/api";
 import { radiationData } from "@/data/radiationData";
@@ -589,7 +589,7 @@ function BlocConsignes({ consignes, reel }: { consignes: LigneConsigne[]; reel: 
 
         <div className="u-panel-foot">
           {reel
-            ? "Consignes réelles : écrites sur le poste sol, récupérées par la passerelle de bord, puis marquées lues par l’équipage. L’état affiché vient du backend."
+            ? "Deux origines se mêlent ici : les consignes écrites sur le poste sol, dont l’état est lu auprès du backend (envoyée → transmise → lue), et celles restées dans la file locale faute de destinataire connu du poste sol — un astronaute inscrit dans ce navigateur, par exemple."
             : "Une consigne mise en file part avec les mesures à l’ouverture de la prochaine fenêtre. Aucun message n’est envoyé depuis ce prototype."}
         </div>
       </section>
@@ -638,24 +638,37 @@ export default function GroundView() {
     ...(equipage ? equipage.map((membre) => membre.id) : EQUIPAGE.map((membre) => membre.nom)),
   ];
   const cible = destinataire || destinataires[0] || "";
-  const messagesReels = useMessagesSol(sol, cible, version);
 
-  const consignesAffichees: LigneConsigne[] =
+  // Les consignes de tout l'équipage d'un coup : changer de destinataire ne doit pas
+  // faire disparaître celles adressées aux autres.
+  const destinatairesBackend = equipage ? equipage.map((membre) => membre.id) : [];
+  const messagesReels = useMessagesSolTous(sol, destinatairesBackend, version);
+
+  // Deux origines qui se complètent au lieu de s'exclure : ce qui est réellement parti
+  // par le poste sol, et ce qui reste en file ici (astronaute inscrit dans ce navigateur,
+  // ou poste sol injoignable). Avant, la liste du backend masquait la file locale : une
+  // consigne mise en file disparaissait aussitôt.
+  const consignesDuBackend: LigneConsigne[] =
     sol && messagesReels
       ? messagesReels.map((message) => ({
-          id: `api-${message.id}`,
+          id: `api-${message.astronaut_id}-${message.id}`,
           miseEnFile: formatDate(message.ts),
-          destinataire: cible,
+          destinataire: message.astronaut_id,
           texte: message.text,
           etat: message.status === "read" ? "lue" : message.status === "delivered" ? "transmise" : "attente",
         }))
-      : consignes.map((consigne) => ({
-          id: consigne.id,
-          miseEnFile: consigne.miseEnFile,
-          destinataire: consigne.destinataire,
-          texte: consigne.texte,
-          etat: consigne.etat === "transmise" ? "transmise" : "attente",
-        }));
+      : [];
+
+  const consignesAffichees: LigneConsigne[] = [
+    ...consignes.map((consigne) => ({
+      id: consigne.id,
+      miseEnFile: consigne.miseEnFile,
+      destinataire: consigne.destinataire,
+      texte: consigne.texte,
+      etat: consigne.etat === "transmise" ? ("transmise" as const) : ("attente" as const),
+    })),
+    ...consignesDuBackend,
+  ];
 
   // tiroir de navigation : Échap referme, et le fond ne défile pas tant qu'il est ouvert
   useEffect(() => {
@@ -681,8 +694,11 @@ export default function GroundView() {
     const texte = consigneTexte.trim();
     if (texte.length < 5) return;
 
-    // backend disponible : la consigne part réellement, avec son cycle sent → delivered → read
-    if (sol && cible) {
+    // La consigne ne part par le poste sol que si son destinataire y existe : un
+    // astronaute inscrit dans ce navigateur n'est pas connu du backend, sa consigne
+    // reste donc dans la file locale au lieu d'échouer en silence.
+    const surLeBackend = equipage?.some((membre) => membre.id === cible) ?? false;
+    if (sol && cible && surLeBackend) {
       const envoi = await envoyerConsigneSol(cible, texte);
       if (envoi) {
         setConsigneTexte("");
