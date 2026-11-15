@@ -680,6 +680,14 @@ export const REGLES_EN: { motif: RegExp; remplacement: string | ((...groupes: st
     motif: /^(\d+) consigne\(s\) en attente de fenêtre$/,
     remplacement: "$1 instruction(s) waiting for a window",
   },
+  {
+    motif: /^Dernière remontée jour (\d+) · (\d+:\d+) UTC · prochaine fenêtre (\d+:\d+) UTC$/,
+    remplacement: "Last reading day $1 · $2 UTC · next window $3 UTC",
+  },
+  {
+    motif: /^Compte créé dans ce navigateur · (.+)$/,
+    remplacement: "Account created in this browser · $1",
+  },
   { motif: /^Simulation partagée · (.+)$/, remplacement: "Shared simulation · $1" },
   { motif: /^Capteurs du module central · (.+)$/, remplacement: "Central module sensors · $1" },
   { motif: /^Reçu du bord · base du sol · (.+)$/, remplacement: "Received from the crew · ground database · $1" },
