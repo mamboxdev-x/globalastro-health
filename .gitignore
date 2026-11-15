@@ -9,3 +9,6 @@ Thumbs.db
 
 # Les bases du module central sont des données locales, pas du code.
 backend/simulation-capteurs/*.csv
+
+# Le modele de configuration doit rester versionne, sinon il manque au clone.
+!.env.example
