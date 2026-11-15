@@ -606,6 +606,9 @@ export const DICTIONNAIRE_EN: Record<string, string> = {
   "Ing. Kouassi": "Eng. Kouassi",
   "· capteurs du module": "· module sensors",
   "HRV · référence pré-vol": "HRV · pre-flight reference",
+  "Dernières valeurs reçues": "Latest values received",
+  "reçue": "received",
+  "· reçue": "· received",
   "La validation marque la séance comme faite dans l’interface ; elle ne provient pas d’un capteur.":
     "Confirming marks the session as done in the interface; it does not come from a sensor.",
   "Le T-score absolu n’est pas mesuré à bord ; il ne peut pas être déduit de cette variation relative.":
@@ -658,6 +661,25 @@ export const REGLES_EN: { motif: RegExp; remplacement: string | ((...groupes: st
   { motif: /^(\d+) critique\(s\)$/, remplacement: "$1 critical" },
   { motif: /^(\d+) à suivre$/, remplacement: "$1 to watch" },
   { motif: /^\/(\d+) validées?$/, remplacement: "/$1 validated" },
+  /* le poste au sol : les compteurs et les bandeaux portent souvent une valeur */
+  {
+    motif: /^(\d+) alertes depuis le début de la mission · (\d+) à traiter$/,
+    remplacement: "$1 alerts since the start of the mission · $2 to handle",
+  },
+  { motif: /^(\d+) en écart$/, remplacement: "$1 out of range" },
+  { motif: /^Score T \(DEXA\) · (.+) écart-type$/, remplacement: "T-score (DEXA) · $1 SD" },
+  {
+    motif: /^Fenêtre du jour (\d+) · (\d+:\d+) → (\d+:\d+) UTC · (\d+) mesures?$/,
+    remplacement: "Window of day $1 · $2 → $3 UTC · $4 measurements",
+  },
+  {
+    motif: /^(\d+) consignes? dans la file · transmission à la prochaine fenêtre$/,
+    remplacement: "$1 instructions in the queue · transmission at the next window",
+  },
+  {
+    motif: /^(\d+) consigne\(s\) en attente de fenêtre$/,
+    remplacement: "$1 instruction(s) waiting for a window",
+  },
   { motif: /^Simulation partagée · (.+)$/, remplacement: "Shared simulation · $1" },
   { motif: /^Capteurs du module central · (.+)$/, remplacement: "Central module sensors · $1" },
   { motif: /^Reçu du bord · base du sol · (.+)$/, remplacement: "Received from the crew · ground database · $1" },
