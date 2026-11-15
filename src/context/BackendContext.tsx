@@ -161,3 +161,8 @@ export function useModuleHistorique(actif: boolean, parametre: string, n = 120, 
 export function useComptesBaseSol(actif: boolean, intervalle = 15_000) {
   return useRessource(actif, "comptes-base-sol", () => sol.comptesSupabase(), intervalle);
 }
+
+/** Les mesures que le bord a transmises au sol, conservées dans la base. */
+export function useMesuresBaseSol(actif: boolean, intervalle = 12_000) {
+  return useRessource(actif, "mesures-base-sol", () => sol.mesuresSupabase(), intervalle);
+}

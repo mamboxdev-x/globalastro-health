@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ADRESSE_MODULE, SONDE_ACTIVE, type MesureModule } from "@/data/api";
+import { SUPABASE_CONFIGURE, transmettreMesuresSupabase, type MesureSupabase } from "@/data/supabase";
 
 /**
  * Simulation partagée de l'équipage.
@@ -193,6 +194,24 @@ export const EQUIPAGE_SIMULE: ProfilSimule[] = [
 const CADENCE = 1_600;
 const PROFONDEUR = 120;
 const TOUS_LES_COMBINE = 6; // on redemande le module tous les 6 pas, soit ~10 s
+const TOUS_LES_ENVOIS = 19; // et on transmet au sol toutes les ~30 s : la fenêtre de communication
+
+/** Paramètres transmis au sol : les mêmes que ceux du journal du médecin. */
+const PARAMETRES_TRANSMIS = [
+  "frequence_cardiaque",
+  "SpO2",
+  "temperature_corporelle",
+  "frequence_respiratoire",
+  "pression_systolique",
+  "pression_diastolique",
+  "debit_cardiaque",
+  "dose_radiation",
+  "t_score",
+  "force_main_droite",
+  "CRP",
+  "sommeil_duree",
+  "co2",
+];
 
 export type EtatSimulation = { membres: MembreSimule[]; moduleActif: boolean };
 
@@ -312,6 +331,33 @@ async function interrogerModule() {
   }
 }
 
+/**
+ * Transmission au sol, à la fenêtre de communication : c'est le seul moment où les mesures
+ * quittent le bord. Le lot part d'un coup, pour les trois membres à la fois.
+ */
+async function transmettreAuSol() {
+  const membres = etat?.membres ?? [];
+  if (!membres.length) return;
+  const lot: MesureSupabase[] = membres.flatMap((membre) =>
+    PARAMETRES_TRANSMIS.flatMap((parametre) => {
+      const mesure = membre.mesures[parametre];
+      if (!mesure) return [];
+      return [
+        {
+          membre: membre.id,
+          capteur: mesure.capteur,
+          parametre,
+          valeur: mesure.valeur,
+          unite: mesure.unite,
+          statut: mesure.statut,
+          date_utc: mesure.date_utc,
+        },
+      ];
+    }),
+  );
+  if (lot.length) await transmettreMesuresSupabase(lot);
+}
+
 export function demarrerSimulation() {
   if (typeof window === "undefined" || minuteur !== null) return;
   // amorçage : les courbes ont déjà de l'allure quand l'écran s'ouvre
@@ -320,6 +366,7 @@ export function demarrerSimulation() {
   minuteur = window.setInterval(() => {
     pasCourant += 1;
     if (pasCourant % TOUS_LES_COMBINE === 0 && !moduleAbandonne) void interrogerModule();
+    if (SUPABASE_CONFIGURE && pasCourant % TOUS_LES_ENVOIS === 0) void transmettreAuSol();
     pas();
   }, CADENCE);
 

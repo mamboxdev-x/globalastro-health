@@ -4,11 +4,12 @@ import {
   useBackend,
   useComptesBaseSol,
   useEquipageSol,
+  useMesuresBaseSol,
   useMessagesSolTous,
 } from "@/context/BackendContext";
 import { useSession, type Compte, type Profil } from "@/context/SessionContext";
 import { envoyerConsigneSol, formatDate } from "@/data/api";
-import { SUPABASE_CONFIGURE } from "@/data/supabase";
+import { SUPABASE_CONFIGURE, type MesureSupabase } from "@/data/supabase";
 import { useConsignes } from "@/data/consignes";
 import {
   LIBELLES_PARAMETRES,
@@ -161,6 +162,23 @@ type MembreBord = {
 };
 
 const REFERENCE_MINUTES = 420;
+
+/** Paramètres que le poste sol suit dans son journal : les mêmes que ceux transmis au sol. */
+const PARAMETRES_JOURNAL = [
+  "frequence_cardiaque",
+  "SpO2",
+  "temperature_corporelle",
+  "frequence_respiratoire",
+  "pression_systolique",
+  "pression_diastolique",
+  "debit_cardiaque",
+  "dose_radiation",
+  "t_score",
+  "force_main_droite",
+  "CRP",
+  "sommeil_duree",
+  "co2",
+];
 
 /* ------------------------------------------------------------ sous-vues --- */
 
@@ -524,34 +542,44 @@ function BlocAlertes({
   );
 }
 
-function BlocJournal({ membres }: { membres: MembreSimule[] }) {
-  const SUIVIS = [
-    "frequence_cardiaque",
-    "SpO2",
-    "temperature_corporelle",
-    "frequence_respiratoire",
-    "pression_systolique",
-    "pression_diastolique",
-    "debit_cardiaque",
-    "dose_radiation",
-    "t_score",
-    "force_main_droite",
-    "CRP",
-    "sommeil_duree",
-    "co2",
-  ];
+function BlocJournal({ membres, recues }: { membres: MembreSimule[]; recues: MesureSupabase[] | null }) {
   const rang = (statut: string) => (statut === "critique" ? 0 : statut === "attention" ? 1 : 2);
 
-  const lignes = membres
-    .flatMap((membre) =>
-      SUIVIS.map((parametre) => ({ parametre, mesure: membre.mesures[parametre], membre })).filter(
-        (entree) => Boolean(entree.mesure),
-      ),
-    )
-    .sort((a, b) => rang(a.mesure.statut) - rang(b.mesure.statut) || a.membre.nom.localeCompare(b.membre.nom))
-    .slice(0, 18);
+  // Deux sources : ce que le bord a réellement transmis (conservé dans la base du sol), sinon
+  // les mesures vivantes de la simulation partagée.
+  const depuisLaBase = (recues?.length ?? 0) > 0;
+  const lignes = depuisLaBase
+    ? [...(recues as MesureSupabase[])]
+        .sort((a, b) => rang(a.statut) - rang(b.statut) || b.date_utc.localeCompare(a.date_utc))
+        .slice(0, 18)
+        .map((mesure) => ({
+          cle: `${mesure.membre}-${mesure.parametre}-${mesure.date_utc}`,
+          heure: mesure.date_utc.slice(11, 19),
+          qui: mesure.membre,
+          parametre: mesure.parametre,
+          valeur: mesure.valeur,
+          unite: mesure.unite,
+          statut: mesure.statut,
+        }))
+    : membres
+        .flatMap((membre) =>
+          PARAMETRES_JOURNAL.map((parametre) => ({ parametre, mesure: membre.mesures[parametre], membre })).filter(
+            (entree) => Boolean(entree.mesure),
+          ),
+        )
+        .sort((a, b) => rang(a.mesure.statut) - rang(b.mesure.statut) || a.membre.nom.localeCompare(b.membre.nom))
+        .slice(0, 18)
+        .map(({ parametre, mesure, membre }) => ({
+          cle: `${membre.id}-${parametre}`,
+          heure: mesure.date_utc.slice(11, 19),
+          qui: membre.nom,
+          parametre,
+          valeur: mesure.valeur,
+          unite: mesure.unite,
+          statut: mesure.statut,
+        }));
 
-  const ecarts = lignes.filter((ligne) => ligne.mesure.statut !== "nominal").length;
+  const ecarts = lignes.filter((ligne) => ligne.statut !== "nominal").length;
 
   return (
     <>
@@ -568,7 +596,10 @@ function BlocJournal({ membres }: { membres: MembreSimule[] }) {
       <section className="u-panel" aria-labelledby="journal-titre">
         <div className="u-panel-head">
           <div>
-            <p className="u-panel-kicker">Dernière fenêtre · {lignes.length} mesures affichées</p>
+            <p className="u-panel-kicker">
+              {depuisLaBase ? "Reçu du bord · base du sol" : "Simulation partagée · en attente d’une fenêtre"} ·{" "}
+              {lignes.length} mesures
+            </p>
             <h2 className="u-panel-title" id="journal-titre">
               Dernières valeurs reçues
             </h2>
@@ -594,24 +625,24 @@ function BlocJournal({ membres }: { membres: MembreSimule[] }) {
               </tr>
             </thead>
             <tbody>
-              {lignes.map(({ parametre, mesure, membre }) => (
-                <tr key={`${membre.id}-${parametre}`}>
-                  <td>{mesure.date_utc.slice(11, 19)}</td>
+              {lignes.map((ligne) => (
+                <tr key={ligne.cle}>
+                  <td>{ligne.heure}</td>
                   <td>
-                    {membre.nom} · {LIBELLES_PARAMETRES[parametre] ?? parametre}
+                    {ligne.qui} · {LIBELLES_PARAMETRES[ligne.parametre] ?? ligne.parametre}
                   </td>
                   <td className="is-num">
-                    {mesure.valeur} {mesure.unite}
+                    {ligne.valeur} {ligne.unite}
                   </td>
-                  <td className="is-num">{plageNominale(parametre)}</td>
-                  <td>{mesure.statut === "nominal" ? "dans la plage" : "hors plage"}</td>
+                  <td className="is-num">{plageNominale(ligne.parametre)}</td>
+                  <td>{ligne.statut === "nominal" ? "dans la plage" : "hors plage"}</td>
                   <td>
                     <span
                       className={`u-chip ${
-                        mesure.statut === "critique" ? "is-alert" : mesure.statut === "attention" ? "is-warn" : "is-ok"
+                        ligne.statut === "critique" ? "is-alert" : ligne.statut === "attention" ? "is-warn" : "is-ok"
                       }`}
                     >
-                      {mesure.statut === "critique" ? "Critique" : mesure.statut === "attention" ? "À suivre" : "Nominal"}
+                      {ligne.statut === "critique" ? "Critique" : ligne.statut === "attention" ? "À suivre" : "Nominal"}
                     </span>
                   </td>
                 </tr>
@@ -640,8 +671,9 @@ function BlocJournal({ membres }: { membres: MembreSimule[] }) {
         </div>
 
         <div className="u-panel-foot">
-          Mêmes valeurs que celles affichées sur le tableau de bord des membres : une seule source alimente les deux
-          interfaces, elles ne peuvent pas se contredire.
+          {depuisLaBase
+            ? "Mesures transmises par le bord à la dernière fenêtre de communication et conservées dans la base du sol. Le poste sol ne voit rien entre deux fenêtres — c’est tout l’enjeu du délai."
+            : "Mesures vivantes de l’équipage : une seule source alimente les deux interfaces. Elles rejoindront la base du sol à la prochaine fenêtre de communication."}
         </div>
       </section>
     </>
@@ -750,6 +782,7 @@ export default function GroundView() {
   const flux = sol || membres.some((membre) => membre.source === "module");
   // les comptes de la base du sol : un astronaute inscrit ailleurs doit apparaître ici
   const comptesBase = useComptesBaseSol(SUPABASE_CONFIGURE);
+  const mesuresRecues = useMesuresBaseSol(SUPABASE_CONFIGURE);
   const tousLesInscrits = useMemo(() => {
     const parIdentifiant = new Map<string, Compte>();
     for (const compte of comptes) parIdentifiant.set(compte.identifiant.toLowerCase(), compte);
@@ -982,7 +1015,7 @@ export default function GroundView() {
             />
           )}
           {vue === "alertes" && <BlocAlertes traitees={traitees} basculer={basculerAlerte} membres={membres} />}
-          {vue === "journal" && <BlocJournal membres={membres} />}
+          {vue === "journal" && <BlocJournal membres={membres} recues={mesuresRecues} />}
           {vue === "consignes" && <BlocConsignes consignes={consignesAffichees} reel={sol} />}
         </div>
 
