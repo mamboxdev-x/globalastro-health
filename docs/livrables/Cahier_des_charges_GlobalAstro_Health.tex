@@ -1,0 +1,464 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------- preamble
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{a4paper,left=2.3cm,right=2.3cm,top=2.4cm,bottom=2.4cm}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage[hidelinks]{hyperref}
+
+% un titre de section ne doit jamais rester seul en bas de page
+\let\sectionorig\section
+\renewcommand{\section}{\Needspace{5\baselineskip}\sectionorig}
+
+\newcommand{\kl}{K2/\textbackslash{}Labs}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small GlobalAstro Health --- Cahier des charges}
+\fancyhead[R]{\small \'Equipe \kl}
+\fancyfoot[C]{\small\thepage}
+
+\setlist[itemize]{topsep=2pt,itemsep=1.5pt,parsep=0pt,leftmargin=1.2em}
+\setlist[enumerate]{topsep=2pt,itemsep=1.5pt,parsep=0pt,leftmargin=1.6em}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\begin{document}
+
+% ---------------------------------------------------------------- titre
+\begin{titlepage}
+\thispagestyle{empty}
+\centering
+\vspace*{2.2cm}
+
+{\Huge\bfseries GlobalAstro Health}\\[0.5cm]
+{\Large Cahier des charges}\\[0.2cm]
+{\large Syst\`eme de veille sanitaire pour \'equipages en mission longue\\}
+{\large \`a bord, et poste de pr\'eparation des consignes au sol}\\[1.6cm]
+
+\rule{0.72\textwidth}{0.6pt}\\[0.45cm]
+{\large NASA Space Apps Challenge 2026}\\[0.15cm]
+{\normalsize D\'efi : Create Health Monitoring Software for Astronauts on Space Missions}\\[0.45cm]
+\rule{0.72\textwidth}{0.6pt}\\[1.6cm]
+
+{\large\bfseries \'Equipe \kl}\\[0.25cm]
+{\normalsize Six membres, deux interfaces, un seul jeu de mesures}\\[2.2cm]
+
+\begin{tabular}{@{}ll@{}}
+\small Version & \small 1.0 \\[2pt]
+\small Date & \small 15 novembre 2026 \\[2pt]
+\small Statut & \small Document de travail d'\'equipe \\[2pt]
+\small Diffusion & \small \'Equipe, encadrement, jury \\[2pt]
+\small Application & \small \url{https://www.globalastro.health} \\
+\end{tabular}
+
+\vfill
+{\footnotesize Ce document ne pr\'esente pas une intention mais un \'etat : ce qui fonctionne d\'ej\`a est s\'epar\'e de ce qui reste \`a construire.}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ================================================================ 1
+\section{Objet du document}
+
+Ce cahier des charges d\'efinit le p\'erim\`etre, les exigences et les crit\`eres d'acceptation de
+\textbf{GlobalAstro Health}, le syst\`eme propos\'e par l'\'equipe \kl{} au d\'efi \og Create Health
+Monitoring Software for Astronauts on Space Missions\fg{} du NASA Space Apps Challenge 2026.
+
+Il sert \`a trois choses :
+
+\begin{itemize}
+  \item \textbf{verrouiller le concept} : ce que le syst\`eme fait, ce qu'il ne fait pas, et pourquoi ;
+  \item \textbf{r\'epartir le travail} : chaque exigence est rattachable \`a une partie du livrable ;
+  \item \textbf{servir de grille de recette} : la section~\ref{sec:recette} liste des v\'erifications
+        ex\'ecutables, avec le r\'esultat attendu.
+\end{itemize}
+
+Les exigences portent une priorit\'e : \textbf{M} (indispensable), \textbf{S} (souhaitable),
+\textbf{C} (confort), \textbf{V} (vision --- montr\'e sur support, hors p\'erim\`etre de la version
+actuelle).
+
+% ================================================================ 2
+\section{Contexte et probl\`eme}
+
+\subsection{Le d\'efi}
+
+Le d\'efi demande de concevoir un logiciel de suivi de la sant\'e des astronautes pour les missions
+spatiales, en s'appuyant sur les donn\'ees ouvertes de la NASA. L'\'enonc\'e pointe lui-m\^eme la
+difficult\'e : \og les astronautes portent eux-m\^emes une grande partie de la responsabilit\'e de
+rep\'erer ces changements \fg{}.
+
+\subsection{Les cinq dangers}
+
+Le programme de recherche humaine de la NASA classe les agressions du vol spatial habit\'e en cinq
+dangers. Ils ne sont pas une d\'ecoration de la documentation : ils structurent l'interface, chaque
+\'ecran renvoyant au risque correspondant du \emph{Human Research Roadmap}.
+
+\begin{tabularx}{\textwidth}{@{}L{4.1cm} L{4.2cm} X@{}}
+\toprule
+\textbf{Danger (NASA)} & \textbf{\'Ecran correspondant} & \textbf{Risque du Human Research Roadmap} \\
+\midrule
+Rayonnement spatial & Rayonnement & Exposition aux rayonnements, norme NASA-STD-3001 \S4.2.10 \\
+Gravit\'e alt\'er\'ee & Os \& C\oe{}ur & Risque 77 (fracture osseuse) et risque 179 (adaptations cardiovasculaires) \\
+Isolement et confinement & Sant\'e mentale & Risque 99 (changements cognitifs, comportementaux ou psychiatriques) \\
+Distance de la Terre & Hors ligne & Risque 175 (op\'erations ind\'ependantes de la Terre) \\
+Environnement ferm\'e & Tableau de bord & Habitabilit\'e : temp\'erature, pression, air, bruit \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Ce que l'\'enonc\'e impose}
+
+Trois contraintes d\'ecoulent directement du d\'efi, et ce sont elles qui d\'ecident de la forme du
+produit.
+
+\begin{enumerate}
+  \item \textbf{Il n'y a pas de m\'edecin \`a bord.} L'outil doit donc \^etre utilisable par
+        l'\'equipage seul, sans vocabulaire m\'edical suppos\'e acquis.
+  \item \textbf{Le signal met des dizaines de minutes \`a atteindre la Terre.} Aucune interface ne
+        peut promettre une intervention imm\'ediate. Le poste au sol \emph{pr\'epare} des consignes ;
+        il ne les applique pas.
+  \item \textbf{Les changements sont progressifs.} Une valeur isol\'ee ne dit rien. Ce qui compte,
+        c'est la d\'erive par rapport \`a la r\'ef\'erence du membre d'\'equipage, et le franchissement
+        d'un seuil qui justifie une action.
+\end{enumerate}
+
+\subsection{Ce qui existe d\'ej\`a, et pourquoi cela ne suffit pas}
+
+Les tableaux de bord de mission existants affichent des courbes et des valeurs brutes. Ils
+r\'epondent \`a la question \og que mesure-t-on ? \fg{}, pas \`a celle que pose le d\'efi :
+\og quand un r\'esultat justifie-t-il l'attention de l'\'equipage ou des chirurgiens de vol ? \fg{}.
+C'est pr\'ecis\'ement cette seconde question que GlobalAstro Health prend pour sujet.
+
+% ================================================================ 3
+\section{P\'erim\`etre}
+
+\subsection{Dans le p\'erim\`etre}
+
+\begin{itemize}
+  \item Deux interfaces distinctes, s\'epar\'ees par le r\^ole : \textbf{\`a bord} (astronaute, sept
+        \'ecrans) et \textbf{au sol} (m\'edecin, quatre \'ecrans).
+  \item Un jeu de mesures unique et partag\'e, pour que les deux interfaces ne puissent jamais se
+        contredire.
+  \item Le calcul des seuils, des statuts et des alertes \`a partir des mesures.
+  \item Le cycle complet d'une consigne : pr\'epar\'ee au sol, transmise \`a la fen\^etre de
+        communication, re\c{c}ue \`a bord, accus\'ee lue.
+  \item Une base h\'eberg\'ee c\^ot\'e sol (comptes, consignes, mesures re\c{c}ues).
+  \item Un fonctionnement \`a bord qui ne d\'epend d'aucun r\'eseau.
+\end{itemize}
+
+\subsection{Hors p\'erim\`etre}
+
+Ces points sont assum\'es et document\'es, pour qu'aucun lecteur ne les prenne pour des promesses :
+
+\begin{itemize}
+  \item la transmission spatiale r\'eelle, et le chiffrement des paquets ;
+  \item l'acquisition de donn\'ees m\'edicales r\'eelles : aucune n'est publique, et un dispositif
+        m\'edical ne peut pas \^etre simul\'e sur un navigateur ;
+  \item le remplacement d'un avis m\'edical : le syst\`eme \'eclaire une d\'ecision, il ne la prend pas ;
+  \item un mod\`ele de s\'ecurit\'e robuste pour la base du sol, qui reste \`a concevoir.
+\end{itemize}
+% ================================================================ 4
+\section{Exigences fonctionnelles}
+
+Les exigences sont num\'erot\'ees par domaine : \textbf{C} pour le socle commun, \textbf{B} pour le
+poste \`a bord, \textbf{S} pour le poste au sol, \textbf{L} pour la liaison. La colonne \og P \fg{}
+porte la priorit\'e (M, S, C, V).
+
+\subsection{Socle commun}
+
+\begin{longtable}{@{}L{1.9cm} c L{12.1cm}@{}}
+\toprule
+\textbf{R\'ef.} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{R\'ef.} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+EF-C-01 & M & Le syst\`eme distingue deux r\^oles, astronaute et m\'edecin au sol, et pr\'esente \`a chacun une interface diff\'erente. \\
+EF-C-02 & M & Un visiteur peut cr\'eer un compte (astronaute ou m\'edecin) ; un identifiant d\'ej\`a pris est refus\'e. \\
+EF-C-03 & M & La connexion est stricte : un identifiant inconnu est refus\'e, un mot de passe erron\'e aussi. \\
+EF-C-04 & M & Le mot de passe est stock\'e sous forme d'empreinte, jamais en clair. \\
+EF-C-05 & S & Un compte inscrit sur un appareil est visible depuis un autre appareil connect\'e au sol. \\
+EF-C-06 & S & Le th\`eme clair et le th\`eme sombre sont commutables par un bouton d\'edi\'e. \\
+EF-C-07 & M & Deux comptes d'acc\`es sont fournis pour l'\'evaluation, sans inscription pr\'ealable. \\
+EF-C-08 & C & La d\'econnexion est accessible depuis la navigation, jamais depuis l'en-t\^ete. \\
+\end{longtable}
+
+\subsection{\`A bord --- poste de l'\'equipage}
+
+\begin{longtable}{@{}L{1.9cm} c L{12.1cm}@{}}
+\toprule
+\textbf{R\'ef.} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{R\'ef.} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+EF-B-01 & M & Un tableau de bord rassemble les indicateurs de l'\'equipage, avec la r\'ef\'erence de chacun et une tendance. \\
+EF-B-02 & M & L'\'ecran \og Os \& C\oe{}ur \fg{} suit la densit\'e min\'erale osseuse et les param\`etres cardiovasculaires, et propose les contre-mesures d'exercice. \\
+EF-B-03 & M & L'\'ecran \og Sant\'e mentale \fg{} suit le sommeil, la charge de travail et le moral. \\
+EF-B-04 & M & L'\'ecran \og Rayonnement \fg{} exprime l'exposition en \textbf{pourcentage de la limite de carri\`ere}, jamais en millisieverts absolus, et nomme l'origine du rayonnement. \\
+EF-B-05 & M & Les alertes affichent l'\'ecart constat\'e, la conduite \`a tenir et l'action corrective propos\'ee. \\
+EF-B-06 & M & Un \'ecran \og Hors ligne \fg{} explique ce qui continue de fonctionner sans liaison et pr\'epare la demande de synchronisation. \\
+EF-B-07 & M & L'\'equipage re\c{c}oit les consignes venues du sol, les lit, et en accuse r\'eception. \\
+EF-B-08 & S & Chaque valeur affich\'ee indique sa provenance : capteurs du module, ou simulation. \\
+EF-B-09 & C & Les comptes non lus sont signal\'es dans la navigation. \\
+\end{longtable}
+
+\subsection{Au sol --- poste du m\'edecin}
+
+\begin{longtable}{@{}L{1.9cm} c L{12.1cm}@{}}
+\toprule
+\textbf{R\'ef.} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{R\'ef.} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+EF-S-01 & M & L'\'ecran d'\'equipage liste les membres suivis avec leurs valeurs re\c{c}ues et l'\'ecart \`a la r\'ef\'erence. \\
+EF-S-02 & M & Toute personne inscrite, y compris depuis un autre appareil, appara\^it dans l'\'equipage suivi. \\
+EF-S-03 & M & Les alertes du poste au sol sont \textbf{d\'eriv\'ees des mesures hors plage}, et non saisies \`a la main. \\
+EF-S-04 & M & Le journal pr\'esente les derni\`eres mesures re\c{c}ues du bord, tri\'ees par gravit\'e, avec la plage attendue et le statut. \\
+EF-S-05 & M & Le m\'edecin \'ecrit une consigne \`a destination d'un membre d'\'equipage, et la met en file pour la prochaine fen\^etre. \\
+EF-S-06 & M & L'\'etat d'une consigne est visible au sol : en attente, livr\'ee au bord, lue par l'\'equipage. \\
+EF-S-07 & S & Une consigne d\'ej\`a trait\'ee peut \^etre class\'ee, pour all\'eger la liste. \\
+\end{longtable}
+
+\subsection{Liaison et fen\^etre de communication}
+
+\begin{longtable}{@{}L{1.9cm} c L{12.1cm}@{}}
+\toprule
+\textbf{R\'ef.} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{R\'ef.} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+EF-L-01 & M & Les mesures sont transmises au sol \`a la fen\^etre de communication, et non en flux continu. \\
+EF-L-02 & M & L'interface du sol \`a bord ne propose aucune action en direct : elle pr\'epare, elle n'applique pas. \\
+EF-L-03 & S & Les mesures re\c{c}ues sont conserv\'ees c\^ot\'e sol, avec leur horodatage, pour servir de journal. \\
+EF-L-04 & S & Si la base du sol est injoignable, l'application fonctionne en repli et l'indique \`a l'\'ecran. \\
+\end{longtable}
+
+% ================================================================ 5
+\section{Exigences non fonctionnelles}
+
+\begin{longtable}{@{}L{2.9cm} c L{11.1cm}@{}}
+\toprule
+\textbf{Domaine} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Domaine} & \textbf{P} & \textbf{Exigence} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Autonomie & M & Le poste \`a bord fonctionne sans r\'eseau : aucune ressource externe n'est n\'ecessaire \`a l'affichage, polices comprises. \\
+Coh\'erence & M & Les deux interfaces lisent le m\^eme jeu de mesures. Une valeur affich\'ee \`a bord et la m\^eme valeur au sol sont rigoureusement identiques. \\
+D\'eterminisme & M & Les valeurs simul\'ees sont reproductibles : une m\^eme entr\'ee produit la m\^eme sortie, sans tirage al\'eatoire. \\
+Honn\^etet\'e & M & L'interface indique toujours l'origine d'un chiffre et ne pr\'esente jamais une valeur simul\'ee comme une mesure r\'eelle. \\
+Accessibilit\'e & S & Navigation au clavier, libell\'es associ\'es aux champs, contrastes suffisants, structure de titres coh\'erente. \\
+Adaptation & S & L'interface reste utilisable sur t\'el\'ephone : la navigation se replie en tiroir, les tableaux deviennent des listes. \\
+Performance & S & L'affichage est imm\'ediat au chargement ; aucune biblioth\`eque de graphiques n'est charg\'ee, les courbes sont dessin\'ees sur place. \\
+S\'ecurit\'e & S & Aucun secret d'\'ecriture n'est expos\'e c\^ot\'e client. La cl\'e publique de la base du sol ne permet que les op\'erations pr\'evues par ses r\`egles d'acc\`es. \\
+Tra\c{c}abilit\'e & S & Les sources officielles utilis\'ees sont r\'ef\'erenc\'ees et cit\'ees, sans jamais laisser croire \`a une approbation de la NASA. \\
+\end{longtable}
+% ================================================================ 6
+\section{Architecture technique}
+
+\subsection{La cha\^ene \`a bord}
+
+Rien ne d\'epend du r\'eseau, et c'est une d\'ecision, pas une commodit\'e : au-del\`a de la
+couverture des stations, une coupure ne doit pas interrompre la surveillance.
+
+\begin{center}
+\begin{tabular}{@{}L{3.4cm} L{4.0cm} L{4.0cm}@{}}
+\toprule
+\textbf{\'Etage} & \textbf{R\^ole} & \textbf{Mise en \oe{}uvre} \\
+\midrule
+Capteurs & Mesurer 25 param\`etres physiologiques et environnementaux & 15 capteurs d\'ecrits et simul\'es (oxym\`etre MAX30102, thermom\`etre MAX30205, CO\textsubscript{2} MH-Z19, centrale inertielle MPU6050, DEXA, Jamar, Omron, r\'esistance cutan\'ee, dosim\`etre, \dots) \\
+Module central & Calculer seuils, statuts et alertes, tenir l'historique local & Service Python 3 autonome, sans d\'ependance externe, base locale horodat\'ee \\
+Interface & Pr\'esenter la d\'ecision \`a l'\'equipage & Application web servie localement, aucune ressource externe \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{La base du sol}
+
+Le site est statique : il n'y a pas de serveur applicatif \`a maintenir. La base h\'eberg\'ee tient
+donc lieu de serveur, par son interface REST.
+
+\begin{tabularx}{\textwidth}{@{}L{4.3cm} X@{}}
+\toprule
+\textbf{Objet} & \textbf{Contenu et r\^ole} \\
+\midrule
+Comptes & Identifiant, r\^ole, profil (masse, taille), empreinte du mot de passe. Permet \`a un membre inscrit sur un appareil d'\^etre vu depuis un autre. \\
+Consignes & Destinataire, texte, horodatage, \'etat (en attente, livr\'ee, lue) et date de lecture. Porte le cycle complet de la consigne. \\
+Mesures & Les mesures transmises \`a la fen\^etre : membre, capteur, param\`etre, valeur, unit\'e, statut, horodatage. Alimente le journal du poste au sol. \\
+\bottomrule
+\end{tabularx}
+
+\subsection{La liaison}
+
+\begin{enumerate}
+  \item \`A la fen\^etre, le bord transmet d'un bloc les mesures de tous les membres, ainsi que les
+        accus\'es de r\'eception des consignes re\c{c}ues.
+  \item Le sol lit ce qui est arriv\'e : il ne voit rien entre deux fen\^etres, et l'interface le
+        rappelle explicitement.
+  \item Une consigne \'ecrite au sol part \`a la fen\^etre suivante, est livr\'ee au bord, puis
+        l'\'equipage en accuse r\'eception ; l'accus\'e remonte \`a la fen\^etre d'apr\`es.
+\end{enumerate}
+
+\subsection{Pile technique}
+
+React 19 et TypeScript pour les interfaces, Vite pour la construction, Python 3 pour le module
+central, PostgreSQL h\'eberg\'e pour la base du sol, polices embarqu\'ees, aucune biblioth\`eque de
+graphiques (les courbes sont dessin\'ees en SVG) et aucun secret d'\'ecriture c\^ot\'e client.
+
+% ================================================================ 7
+\section{Donn\'ees et sources}
+
+\subsection{Sources officielles utilis\'ees}
+
+\begin{tabularx}{\textwidth}{@{}L{4.6cm} X@{}}
+\toprule
+\textbf{Source} & \textbf{Ce qui en est tir\'e} \\
+\midrule
+Programme de recherche humaine de la NASA, taxonomie des dangers & Les cinq dangers structurent l'interface ; chaque \'ecran renvoie \`a un danger. \\
+Human Research Roadmap, risques 77, 179, 99 et 175 & Les risques nomm\'es pour l'os, le cardiovasculaire, le comportemental et l'autonomie. \\
+NASA-STD-3001 \S4.2.10 & Le fait que la limite de dose de carri\`ere s'exprime en \textbf{risque}, ce qui interdit de l'afficher en millisieverts absolus. \\
+Agence spatiale canadienne, m\'edecine spatiale et exp\'erience Radi-N2 & Les trois composantes du rayonnement spatial, la part des neutrons (\`a peu pr\`es 30\,\% de la dose \`a bord de la Station spatiale) et la contre-mesure d'abri. \\
+NASA, risques cardiovasculaire et musculaire & La contre-mesure de pression n\'egative des membres inf\'erieurs, et l'effet d'un programme d'exercice suivi. \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Ce qui est simul\'e, et comment le syst\`eme le dit}
+
+Aucune donn\'ee m\'edicale r\'eelle n'est publique, et aucun dispositif m\'edical n'est reli\'e. Les
+\textbf{valeurs} sont donc simul\'ees. Trois r\`egles tiennent la fronti\`ere entre ce qui est
+d\'emontr\'e et ce qui est repr\'esent\'e :
+
+\begin{itemize}
+  \item chaque valeur affich\'ee porte sa provenance, \og capteurs du module \fg{} ou \og simulation \fg{} ;
+  \item les rep\`eres, seuils et classifications viennent des sources officielles cit\'ees, jamais
+        d'une valeur invent\'ee pour faire joli ;
+  \item les contre-mesures cit\'ees (ARED, tapis roulant T2, v\'elo CEVIS, cartographie des zones
+        abrit\'ees) sont celles r\'eellement utilis\'ees ou \'etudi\'ees en vol : elles ne sont pas
+        invent\'ees pour le concours.
+\end{itemize}
+
+% ================================================================ 8
+\section{Recette}
+\label{sec:recette}
+
+Chaque v\'erification ci-dessous a \'et\'e ex\'ecut\'ee sur la version d\'ecrite par ce document.
+La colonne \og R\'esultat \fg{} rapporte ce qui a \'et\'e observ\'e, et non ce qui est attendu.
+
+\begin{longtable}{@{}L{5.4cm} L{5.4cm} L{2.7cm}@{}}
+\toprule
+\textbf{V\'erification} & \textbf{Attendu} & \textbf{R\'esultat} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{V\'erification} & \textbf{Attendu} & \textbf{R\'esultat} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Connexion avec un identifiant inconnu & Refus avec message explicite & Conforme \\
+Inscription d'un compte astronaute & Compte cr\'e\'e, empreinte stock\'ee & Conforme \\
+Inscription depuis un second appareil & Le compte appara\^it au poste au sol & Conforme \\
+Comparaison d'une m\^eme mesure sur les deux interfaces & Valeurs identiques & Conforme \\
+\'Ecriture d'une consigne au sol & Consigne enregistr\'ee pour le bon destinataire & Conforme \\
+R\'eception de la consigne \`a bord & Affich\'ee comme adress\'ee \`a l'\'equipage & Conforme \\
+Accus\'e de r\'eception & \'Etat \og lue \fg{} enregistr\'e avec l'horodatage & Conforme \\
+Transmission \`a la fen\^etre & Mesures re\c{c}ues et conserv\'ees c\^ot\'e sol & Conforme \\
+Journal du poste au sol & Aliment\'e par les mesures re\c{c}ues & Conforme \\
+Fonctionnement sans r\'eseau & Aucune requ\^ete externe n\'ecessaire \`a l'affichage & Conforme \\
+Affichage sur t\'el\'ephone & Navigation repli\'ee, tableaux lisibles & Conforme \\
+Console du navigateur & Aucune erreur & Conforme \\
+\end{longtable}
+
+% ================================================================ 9
+\section{Risques et limites}
+
+\begin{longtable}{@{}L{6.0cm} L{7.5cm}@{}}
+\toprule
+\textbf{Risque ou limite} & \textbf{Traitement retenu} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Risque ou limite} & \textbf{Traitement retenu} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Les valeurs sont simul\'ees & Assum\'e et affich\'e : chaque chiffre porte sa provenance. Le syst\`eme d\'emontre le raisonnement, pas une mesure. \\
+La transmission spatiale n'est pas r\'eelle & Assum\'e et document\'e ; c'est le m\'ecanisme de la fen\^etre qui est d\'emontr\'e. \\
+La base du sol n'a pas de mod\`ele de s\'ecurit\'e abouti & Assum\'e ; les r\`egles d'acc\`es actuelles suffisent \`a une version de travail, pas \`a un usage r\'eel. \\
+La cl\'e des travaux cartographi\'es n'existe pas encore & Anticip\'e : aucune d\'ecision m\'edicale n'est automatis\'ee. \\
+Le vocabulaire m\'edical peut perdre l'\'equipage & Les \'ecrans parlent de conduite \`a tenir avant de parler de pathologie. \\
+La d\'ependance \`a un service h\'eberg\'e & Repli pr\'evu : sans base joignable, l'application continue de fonctionner et le dit. \\
+\end{longtable}
+
+% ================================================================ 10
+\section{Livrables et jalons}
+
+\begin{tabularx}{\textwidth}{@{}L{3.3cm} L{4.4cm} X@{}}
+\toprule
+\textbf{Livrable} & \textbf{Forme} & \textbf{\'Etat} \\
+\midrule
+Interfaces \`a bord et au sol & Application web publique & Livr\'e \\
+Module central & Service Python autonome & Livr\'e \\
+Base du sol & Base h\'eberg\'ee et son sch\'ema & Livr\'e \\
+Capteurs et param\`etres & 15 capteurs, 25 param\`etres & Livr\'e \\
+Cycle des consignes & Pr\'eparation, transmission, accus\'e & Livr\'e \\
+Ce cahier des charges & Document & Livr\'e \\
+Dossier de projet & Document & Livr\'e \\
+Diaporama de soumission & 7 diapositives & Livr\'e \\
+Transmission spatiale r\'eelle & Non couverte & Hors p\'erim\`etre \\
+\bottomrule
+\end{tabularx}
+
+\vspace{0.5cm}
+\noindent Le p\'erim\`etre retenu est volontairement \'etroit. L'\'equipe a pr\'ef\'er\'e tenir une cha\^ine
+compl\`ete, de la mesure jusqu'\`a l'accus\'e de r\'eception, plut\^ot que de juxtaposer des maquettes
+ind\'ependantes les unes des autres. C'est ce qui permet de montrer une d\'ecision qui circule, et
+non seulement des \'ecrans qui affichent.
+
+\vspace{0.4cm}
+\noindent\rule{\textwidth}{0.4pt}
+\vspace{0.2cm}
+
+\noindent{\small NB : les ressources cit\'ees appartiennent \`a la NASA et \`a l'Agence spatiale
+canadienne. Elles sont r\'ef\'erenc\'ees, jamais republi\'ees, et l'\'equipe ne se pr\'esente pas
+comme approuv\'ee par ces agences.}
+
+\end{document}

@@ -1,0 +1,424 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------- preamble
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{a4paper,left=2.2cm,right=2.2cm,top=2.3cm,bottom=2.3cm}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage[hidelinks]{hyperref}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,justification=centering}
+
+\let\sectionorig\section
+\renewcommand{\section}{\Needspace{5\baselineskip}\sectionorig}
+
+\newcommand{\kl}{K2/\textbackslash{}Labs}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small GlobalAstro Health --- Dossier de projet}
+\fancyhead[R]{\small \'Equipe \kl}
+\fancyfoot[C]{\small\thepage}
+
+\setlist[itemize]{topsep=2pt,itemsep=1.5pt,parsep=0pt,leftmargin=1.2em}
+\setlist[enumerate]{topsep=2pt,itemsep=1.5pt,parsep=0pt,leftmargin=1.6em}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\capture}[2]{%
+  \begin{center}
+  \includegraphics[width=0.88\textwidth]{../repo/docs/captures/#1}
+  \captionof{figure}{#2}
+  \end{center}
+}
+
+\begin{document}
+
+% ---------------------------------------------------------------- titre
+\begin{titlepage}
+\thispagestyle{empty}
+\centering
+\vspace*{1.4cm}
+
+\includegraphics[height=2.3cm]{../repo/public/logo-clair.png}\\[1.1cm]
+
+{\Huge\bfseries GlobalAstro Health}\\[0.45cm]
+{\Large Dossier de projet}\\[0.3cm]
+{\large Rep\'erer seul, d\'ecider au sol}\\[1.1cm]
+
+\rule{0.72\textwidth}{0.6pt}\\[0.4cm]
+{\large NASA Space Apps Challenge 2026}\\[0.15cm]
+{\normalsize D\'efi : Create Health Monitoring Software for Astronauts on Space Missions}\\[0.4cm]
+\rule{0.72\textwidth}{0.6pt}\\[1.1cm]
+
+{\large\bfseries \'Equipe \kl}\\[0.2cm]
+{\normalsize Six membres}\\[1.6cm]
+
+\begin{tabular}{@{}ll@{}}
+\small Version & \small 1.0 \\[2pt]
+\small Date & \small 15 novembre 2026 \\[2pt]
+\small Application & \small \url{https://www.globalastro.health} \\[2pt]
+\small D\'ep\^ot & \small \url{https://github.com/mamboxdev-x/globalastro-health} \\
+\end{tabular}
+
+\vfill
+{\footnotesize Ce dossier d\'ecrit le produit tel qu'il fonctionne aujourd'hui : ce qui est d\'emontr\'e, ce qui est simul\'e, et ce qui reste \`a construire.}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ================================================================ 1
+\section{Le projet en bref}
+
+\textbf{GlobalAstro Health} est un syst\`eme d'aide \`a la d\'ecision pour la sant\'e des \'equipages
+en mission longue. Il ne remplace pas un tableau de bord : il r\'epond \`a la question que le d\'efi
+pose r\'eellement, celle du moment o\`u un r\'esultat justifie une action.
+
+Le syst\`eme \'equipe les deux extr\'emit\'es de la mission, avec deux m\'etiers et deux interfaces.
+
+\begin{tabularx}{\textwidth}{@{}L{3.1cm} X@{}}
+\toprule
+\textbf{Qui} & \textbf{Ce que le syst\`eme lui donne} \\
+\midrule
+L'\'equipage, \`a bord & Sept \'ecrans pour rep\'erer seul une d\'erive : indicateurs et r\'ef\'erences, os et c\oe{}ur, sant\'e mentale, rayonnement, alertes et conduite \`a tenir, mode hors ligne, consignes re\c{c}ues du sol. \\
+Le m\'edecin, au sol & Quatre vues pour suivre l'\'equipage et pr\'eparer ses consignes : \'etat des membres, alertes d\'eduites des mesures, journal des mesures re\c{c}ues, et le cycle d'une consigne jusqu'\`a son accus\'e de r\'eception. \\
+\bottomrule
+\end{tabularx}
+
+Trois choix d\'efinissent le produit, et ils se d\'efendent tous les trois.
+
+\begin{enumerate}
+  \item \textbf{Le d\'elai de communication n'est pas un d\'etail.} Il n'y a pas de flux continu entre
+        le bord et la Terre. Le poste au sol ne propose donc jamais d'agir en direct : il pr\'epare.
+  \item \textbf{Une seule source de mesures.} Les deux interfaces lisent le m\^eme jeu de donn\'ees :
+        elles ne peuvent pas se contredire, et le produit ne peut pas \^etre pris en d\'efaut
+        sur ce point.
+  \item \textbf{Le syst\`eme dit toujours d'o\`u vient un chiffre.} Une valeur affich\'ee porte sa
+        provenance, et l'interface annonce clairement ce qui est mesur\'e et ce qui est simul\'e.
+\end{enumerate}
+
+% ================================================================ 2
+\section{Le probl\`eme}
+
+\subsection{Cinq dangers document\'es}
+
+Le programme de recherche humaine de la NASA classe les agressions du vol spatial habit\'e en cinq
+dangers. Ils ne sont pas une d\'ecoration : ils structurent le produit.
+
+\begin{tabularx}{\textwidth}{@{}L{4.0cm} L{4.3cm} X@{}}
+\toprule
+\textbf{Danger} & \textbf{\'Ecran} & \textbf{Ce que cela implique pour l'interface} \\
+\midrule
+Rayonnement spatial & Rayonnement & Une exposition qui s'accumule sur toute une carri\`ere, et une limite qui s'exprime en risque, pas en dose absolue. \\
+Gravit\'e alt\'er\'ee & Os \& C\oe{}ur & Une perte osseuse et des adaptations cardiovasculaires qui s'installent lentement. \\
+Isolement et confinement & Sant\'e mentale & Le sommeil, la charge de travail et le moral sont des param\`etres de mission, pas des \`a-c\^ot\'es. \\
+Distance de la Terre & Hors ligne & Un outil embarqu\'e qui d\'epend du r\'eseau est un outil qui tombe en panne quand on en a besoin. \\
+Environnement ferm\'e & Tableau de bord & L'air, la temp\'erature et le bruit font partie de l'\'etat de sant\'e de l'\'equipage. \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Ce que l'\'enonc\'e impose}
+
+Le d\'efi \'enonce lui-m\^eme la difficult\'e : \og les astronautes portent eux-m\^emes une grande
+partie de la responsabilit\'e de rep\'erer ces changements \fg{}. Trois cons\'equences en d\'ecoulent.
+
+\begin{itemize}
+  \item \textbf{Il n'y a pas de m\'edecin \`a bord.} L'outil doit \^etre lisible par quelqu'un qui
+        n'est pas soignant.
+  \item \textbf{Le signal met des dizaines de minutes \`a atteindre la Terre.} Aucune promesse
+        d'intervention imm\'ediate n'est tenable.
+  \item \textbf{Les changements sont progressifs.} Une valeur isol\'ee ne dit rien ; c'est la d\'erive
+        par rapport \`a la r\'ef\'erence qui parle.
+\end{itemize}
+
+\subsection{Pourquoi un tableau de bord ne suffit pas}
+
+Les outils existants affichent des courbes et des valeurs. Ils r\'epondent \`a \og que mesure-t-on ?
+\fg{}. Le d\'efi, lui, demande \og quand faut-il agir ? \fg{}. Entre les deux questions il y a un
+travail de conception : hi\'erarchiser, comparer \`a une r\'ef\'erence, nommer une conduite \`a tenir,
+et surtout pr\'eparer une d\'ecision que quelqu'un d'autre appliquera plus tard.
+
+% ================================================================ 3
+\section{La r\'eponse}
+
+Le syst\`eme est construit autour d'une seule phrase : \emph{rep\'erer seul, d\'ecider au sol}.
+
+\subsection{\`A bord : rep\'erer seul}
+
+L'\'equipage n'a pas besoin d'un diagnostic, il a besoin de savoir si quelque chose a chang\'e. Chaque
+\'ecran va donc dans ce sens : une valeur, la r\'ef\'erence \`a laquelle la comparer, et ce que cela
+implique. Quand un seuil est franchi, l'\'ecran ne dit pas \og attention \fg{} : il nomme l'\'ecart,
+propose une conduite \`a tenir, et donne une action \`a cocher.
+
+\subsection{Au sol : pr\'eparer, pas piloter}
+
+Le m\'edecin ne peut pas surveiller en continu : il re\c{c}oit des mesures \`a la fen\^etre de
+communication. Son interface est donc construite autour de deux gestes : lire ce qui vient d'arriver,
+et \'ecrire une consigne pour la prochaine fen\^etre. C'est ce que veut dire \og aider \`a la
+d\'ecision \fg{} dans un contexte o\`u la d\'ecision met des minutes \`a arriver.
+
+\subsection{Une consigne est un \'etat, pas un message}
+
+Le syst\`eme ne se contente pas d'envoyer un texte : il suit une consigne de bout en bout.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}L{4.4cm} L{5.0cm} X@{}}
+\toprule
+\textbf{\'Etat} & \textbf{Qui agit} & \textbf{Ce qui est v\'erifiable} \\
+\midrule
+En attente & Le m\'edecin \'ecrit et met en file & La consigne porte un destinataire et une date \\
+Livr\'ee au bord & La fen\^etre de communication passe & La consigne appara\^it \`a bord \\
+Lue par l'\'equipage & L'\'equipage en accuse r\'eception & L'horodatage de lecture remonte au sol \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+C'est cette boucle compl\`ete qui distingue le produit d'une maquette : une consigne \'ecrite sur un
+appareil arrive sur un autre, et l'accus\'e de r\'eception revient.
+
+% ================================================================ 4
+\section{Les deux postes}
+
+\subsection{La connexion}
+
+Le r\^ole se choisit \`a l'entr\'ee : astronaute ou m\'edecin au sol. Deux comptes d'acc\`es sont
+fournis pour l'\'evaluation, et un visiteur peut cr\'eer le sien.
+
+\capture{connexion.png}{\'Ecran de connexion : le r\^ole d\'etermine enti\`erement l'interface.}
+
+\subsection{\`A bord, pour l'\'equipage}
+
+\capture{astro_1_tableau_de_bord.png}{Tableau de bord : les indicateurs, leur r\'ef\'erence et leur tendance. Rep\'erer une d\'erive, pas lire un chiffre.}
+
+\capture{astro_2_os_coeur.png}{Os et c\oe{}ur : densit\'e min\'erale osseuse et param\`etres cardiovasculaires, avec les contre-mesures d'exercice.}
+
+\capture{astro_3_sante_mentale.png}{Sant\'e mentale : sommeil, charge de travail et moral --- le danger \og isolement et confinement \fg{}.}
+
+\capture{astro_4_rayonnement.png}{Rayonnement : l'exposition en pourcentage de la limite de carri\`ere, jamais en millisieverts absolus.}
+\capture{astro_5_alerte.png}{Alerte : l'\'ecart constat\'e, la conduite \`a tenir et l'action corrective \`a cocher.}
+
+\capture{astro_6_hors_ligne.png}{Hors ligne : ce qui continue de fonctionner sans liaison, et la demande de synchronisation pr\'epar\'ee.}
+
+\capture{astro_7_instructions.png}{Consignes re\c{c}ues du sol : la boucle se referme ici, avec l'accus\'e de r\'eception.}
+
+\subsection{Au sol, pour le m\'edecin}
+
+\capture{sol_1_equipage.png}{\'Etat de l'\'equipage : les membres suivis, leurs valeurs re\c{c}ues et l'\'ecart \`a la r\'ef\'erence.}
+
+\capture{sol_2_alertes.png}{Alertes re\c{c}ues : elles sont d\'eduites des mesures hors plage, jamais saisies \`a la main.}
+
+\capture{sol_3_journal.png}{Journal des mesures : ce qui est arriv\'e \`a la derni\`ere fen\^etre, tri\'e par gravit\'e, avec la plage attendue.}
+
+\capture{sol_4_consignes.png}{Consignes envoy\'ees : l'\'etat de chacune, jusqu'\`a l'accus\'e de r\'eception de l'\'equipage.}
+
+% ================================================================ 5
+\section{Comment cela fonctionne}
+
+\subsection{La cha\^ine \`a bord}
+
+\begin{center}
+\begin{tabular}{@{}L{3.2cm} L{4.2cm} L{6.2cm}@{}}
+\toprule
+\textbf{\'Etage} & \textbf{R\^ole} & \textbf{Mise en \oe{}uvre} \\
+\midrule
+Capteurs & 25 param\`etres physiologiques et environnementaux & 15 capteurs (oxym\`etre MAX30102, thermom\`etre MAX30205, CO\textsubscript{2} MH-Z19, centrale MPU6050, DEXA, Jamar, Omron, r\'esistance cutan\'ee, dosim\`etre, bracelet, ceinture, laboratoire, calcul, InBody, balance) \\
+Module central & Seuils, statuts, historique & Service Python autonome, sans aucune d\'ependance externe, base locale horodat\'ee \\
+Interface & Pr\'esenter la d\'ecision & Application web servie sur place, sans ressource externe \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Rien dans cette cha\^ine ne d\'epend du r\'eseau}, et c'est une d\'ecision : une coupure de
+liaison ne doit pas interrompre la surveillance. Tout ce qui est n\'ecessaire \`a l'affichage ---
+polices comprises --- est embarqu\'e.
+
+\subsection{La base du sol}
+
+Le site est statique : il n'y a pas de serveur applicatif \`a maintenir. C'est la base h\'eberg\'ee
+qui tient ce r\^ole, par son interface REST.
+
+\begin{tabularx}{\textwidth}{@{}L{4.0cm} X@{}}
+\toprule
+\textbf{Objet} & \textbf{Ce qu'il porte} \\
+\midrule
+Comptes & Identifiant, r\^ole, profil, empreinte du mot de passe. C'est ce qui permet \`a un membre inscrit sur un appareil d'\^etre vu depuis un autre. \\
+Consignes & Destinataire, texte, horodatage, \'etat et date de lecture. C'est le cycle complet de la consigne. \\
+Mesures & Ce qui a \'et\'e transmis \`a la fen\^etre : membre, capteur, param\`etre, valeur, unit\'e, statut, horodatage. C'est le journal du poste au sol. \\
+\bottomrule
+\end{tabularx}
+
+\subsection{La fen\^etre de communication}
+
+\begin{enumerate}
+  \item \`A la fen\^etre, le bord transmet d'un bloc les mesures de tous les membres, et les accus\'es
+        de r\'eception des consignes qui viennent d'\^etre lues.
+  \item Le sol lit ce qui est arriv\'e. Entre deux fen\^etres, il ne voit rien --- et l'interface le
+        dit au lieu de faire semblant.
+  \item Une consigne \'ecrite au sol part \`a la fen\^etre suivante, est livr\'ee \`a bord, puis
+        l'\'equipage en accuse r\'eception. L'accus\'e remonte \`a la fen\^etre d'apr\`es.
+\end{enumerate}
+
+% ================================================================ 6
+\section{Le cycle d'une consigne, de bout en bout}
+
+Ce cycle est la colonne vert\'ebrale du produit : il traverse deux appareils, deux r\^oles
+et une base de donn\'ees.
+
+\begin{enumerate}
+  \item \textbf{Au sol}, le m\'edecin choisit un destinataire, \'ecrit la consigne et la met en file.
+        Elle appara\^it imm\'ediatement dans sa liste, avec l'\'etat \og en attente \fg{}.
+  \item \textbf{\`A la fen\^etre}, la consigne part avec les mesures du lot.
+  \item \textbf{\`A bord}, l'\'equipage voit la consigne arriver dans ses instructions, avec la mention
+        qui indique qu'elle lui est adress\'ee.
+  \item \textbf{L'\'equipage la lit et l'accuse}. \`A cet instant, l'\'etat change et l'heure de lecture
+        est enregistr\'ee.
+  \item \textbf{Au sol}, le m\'edecin voit l'\'etat passer \`a \og lue \fg{}. Il sait que la consigne
+        est arriv\'ee, et quand.
+\end{enumerate}
+
+Ce que cela d\'emontre, concr\`etement : le syst\`eme ne se contente pas d'afficher des donn\'ees, il
+fait circuler une d\'ecision et en rapporte la preuve. C'est exactement ce que le d\'elai oblige \`a
+faire, et c'est ce qu'aucun tableau de bord classique ne fait.
+
+% ================================================================ 7
+\section{Les donn\'ees et leurs sources}
+
+\subsection{Les ressources officielles}
+
+\begin{tabularx}{\textwidth}{@{}L{4.6cm} X@{}}
+\toprule
+\textbf{Source} & \textbf{Ce qu'elle d\'ecide dans le produit} \\
+\midrule
+Programme de recherche humaine de la NASA --- les cinq dangers & Les cinq familles d'\'ecrans \`a bord. C'est la colonne vert\'ebrale du produit, pas une citation en bibliographie. \\
+Human Research Roadmap --- risques 77, 179, 99, 175 & Les risques nomm\'es pour l'os, le cardiovasculaire, le comportemental et l'autonomie vis-\`a-vis de la Terre. \\
+NASA-STD-3001 \S4.2.10 & La limite de dose de carri\`ere s'exprime en risque : c'est pourquoi l'\'ecran affiche un pourcentage, jamais une dose absolue. \\
+Agence spatiale canadienne --- m\'edecine spatiale & Les trois composantes du rayonnement spatial et ses effets \`a long terme. \\
+Agence spatiale canadienne --- exp\'erience Radi-N2 & La part des neutrons, et la contre-mesure : cartographier les zones les plus prot\'eg\'ees du v\'ehicule pour y replier l'\'equipage lors d'une \'eruption solaire. \\
+NASA --- risques cardiovasculaire et musculaire & La contre-mesure de pression n\'egative des membres inf\'erieurs, et l'effet d'un programme d'exercice suivi. \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Ce qui est r\'eellement mesur\'e, et ce qui est simul\'e}
+
+La fronti\`ere est nette, et elle est affich\'ee.
+
+\textbf{Est r\'eel :} le fonctionnement des deux interfaces, l'inscription et la connexion, la
+coh\'erence entre les deux postes, le calcul des seuils et des alertes, les 15 capteurs et leurs 25
+param\`etres, la base du sol, la transmission \`a la fen\^etre, et le cycle complet d'une consigne
+avec son accus\'e de r\'eception.
+
+\textbf{Est simul\'e :} les valeurs elles-m\^emes. Aucune donn\'ee m\'edicale r\'eelle n'est publique,
+et aucun dispositif m\'edical n'est reli\'e. Chaque valeur affich\'ee porte donc sa provenance :
+\og capteurs du module \fg{} ou \og simulation \fg{}.
+
+\textbf{N'est pas impl\'ement\'e :} la transmission spatiale r\'eelle, le chiffrement des paquets, et
+un mod\`ele de s\'ecurit\'e robuste pour la base du sol.
+% ================================================================ 8
+\section{Les choix techniques}
+
+\begin{tabularx}{\textwidth}{@{}L{4.3cm} X@{}}
+\toprule
+\textbf{Choix} & \textbf{Pourquoi} \\
+\midrule
+Deux interfaces s\'epar\'ees plut\^ot qu'une seule param\'etrable & Les deux m\'etiers n'ont ni les m\^emes questions, ni le m\^eme temps disponible. Un \'ecran unique aurait impos\'e \`a l'\'equipage la logique du m\'edecin. \\
+Un service Python autonome \`a bord & Il ne d\'epend d'aucun paquet externe : c'est la seule fa\c{c}on d'\^etre s\^ur de le faire tourner sur une machine isol\'ee. \\
+Une base h\'eberg\'ee c\^ot\'e sol & Le site est statique : pas de serveur applicatif \`a maintenir, donc pas de panne \`a g\'erer le jour de l'\'evaluation. \\
+Aucune biblioth\`eque de graphiques & Les courbes sont dessin\'ees sur place, en SVG : rien \`a t\'el\'echarger, donc rien qui casse hors ligne. \\
+Polices embarqu\'ees & M\^eme raison : l'affichage ne doit d\'ependre d'aucun r\'eseau. \\
+Aucune cl\'e d'\'ecriture dans le navigateur & La cl\'e publique ne permet que les op\'erations pr\'evues par les r\`egles d'acc\`es de la base. \\
+Une seule source de mesures & Garantit que les deux interfaces ne peuvent pas se contredire, et rend le r\'esultat reproductible. \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Emploi de l'intelligence artificielle}
+
+Le r\`eglement du d\'efi demande de d\'eclarer l'emploi d'outils d'intelligence artificielle, et
+d'indiquer o\`u ils ont servi. Nous l'\'ecrivons ici plut\^ot que de le laisser deviner, et nous
+pr\'ecisons ce qu'ils n'ont pas fait.
+
+\begin{tabularx}{\textwidth}{@{}L{3.6cm} X@{}}
+\toprule
+\textbf{Outil} & \textbf{O\`u et comment} \\
+\midrule
+Agent de d\'eveloppement assist\'e par un grand mod\`ele de langage & \'Ecriture et relecture du code des deux interfaces, du module central et de la base du sol ; r\'edaction de la documentation du d\'ep\^ot ; \'ecriture des scripts de v\'erification ; analyse des mesures pour v\'erifier la coh\'erence entre les deux postes. Utilis\'e comme outil de d\'eveloppement, sous d\'ecision et relecture humaines. \\
+\bottomrule
+\end{tabularx}
+
+\textbf{Ce que l'intelligence artificielle n'a pas fait, et ne fera pas :} aucun \'el\'ement de marque
+ou de design de la NASA n'a \'et\'e g\'en\'er\'e ni utilis\'e ; aucune image de synth\`ese ne figure
+dans le produit ; l'identit\'e visuelle a \'et\'e cr\'e\'ee par l'\'equipe ; et aucune donn\'ee
+m\'edicale r\'eelle --- ni aucune donn\'ee personnelle --- n'a \'et\'e trait\'ee, puisque les valeurs
+sont simul\'ees et que l'interface le dit.
+
+% ================================================================ 9
+\section{L'\'equipe}
+
+L'\'equipe \kl{} r\'eunit six personnes autour d'un livrable commun. Le partage du travail suit les
+deux postes du produit et les ressources du d\'efi.
+
+\begin{tabularx}{\textwidth}{@{}L{4.6cm} X@{}}
+\toprule
+\textbf{Chantier} & \textbf{Contenu} \\
+\midrule
+Interface \`a bord & Les sept \'ecrans de l'\'equipage, et la logique de rep\'erage d'une d\'erive. \\
+Interface au sol & Les quatre vues du m\'edecin, et le cycle des consignes. \\
+Module central et capteurs & La cha\^ine de mesure, les seuils, le fonctionnement hors ligne. \\
+Base et liaison & La base du sol, la fen\^etre de communication, le transport des consignes. \\
+Donn\'ees et sources & La tra\c{c}abilit\'e des ressources officielles, et la v\'erification des rep\`eres affich\'es. \\
+Documentation et pr\'esentation & Le cahier des charges, ce dossier, le diaporama de soumission. \\
+\bottomrule
+\end{tabularx}
+
+% ================================================================ 10
+\section{Les limites, assum\'ees}
+
+Un projet de quarante-huit heures a des limites. Les nommer fait partie du travail, parce qu'un jury
+les trouvera de toute fa\c{c}on.
+
+\begin{itemize}
+  \item \textbf{Les valeurs sont simul\'ees.} Le syst\`eme d\'emontre un raisonnement, pas une
+        mesure. Il le dit \`a chaque chiffre affich\'e.
+  \item \textbf{La transmission spatiale n'est pas r\'eelle.} C'est le m\'ecanisme de la fen\^etre qui
+        est d\'emontr\'e, avec ses cons\'equences sur les deux interfaces.
+  \item \textbf{La base du sol n'a pas de mod\`ele de s\'ecurit\'e abouti.} Les r\`egles d'acc\`es
+        actuelles suffisent \`a une version de travail, pas \`a un usage r\'eel.
+  \item \textbf{Aucune d\'ecision m\'edicale n'est automatis\'ee.} Le syst\`eme propose, hi\'erarchise
+        et pr\'epare. C'est un choix, pas un manque.
+\end{itemize}
+
+% ================================================================ 11
+\section{Pour aller plus loin}
+
+Trois directions, dans l'ordre o\`u elles auraient du sens.
+
+\begin{enumerate}
+  \item \textbf{Brancher de vrais capteurs sur le module central.} La cha\^ine existe d\'ej\`a ; il
+        reste \`a remplacer la source simul\'ee par une source physique.
+  \item \textbf{Chiffrer les paquets et durcir la base du sol.} C'est la condition pour que le
+        syst\`eme puisse un jour sortir du banc d'essai.
+  \item \textbf{Apprendre la r\'ef\'erence individuelle.} Aujourd'hui la r\'ef\'erence est une valeur
+        de d\'epart ; demain, elle devrait \^etre la tendance propre de chaque membre d'\'equipage,
+        ce qui rendrait le rep\'erage d'une d\'erive beaucoup plus fin.
+\end{enumerate}
+
+\vspace{0.5cm}
+\noindent\rule{\textwidth}{0.4pt}
+\vspace{0.25cm}
+
+\noindent{\small NB : les ressources cit\'ees appartiennent \`a la NASA et \`a l'Agence spatiale
+canadienne. Elles sont r\'ef\'erenc\'ees, jamais republi\'ees ; la NASA n'approuve aucune entit\'e
+non gouvernementale am\'ericaine, et l'\'equipe ne se pr\'esente pas comme approuv\'ee par elle.}
+
+\end{document}

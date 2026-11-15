@@ -1,0 +1,240 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{ragged2e}
+\usetikzlibrary{arrows.meta,positioning}
+
+% ---------- Palette (identite visuelle GlobalAstro Health) ----------
+\definecolor{bgnavy}{RGB}{11,19,48}
+\definecolor{panel}{RGB}{18,28,62}
+\definecolor{cyanH}{RGB}{62,219,213}
+\definecolor{violetH}{RGB}{108,92,231}
+\definecolor{lightfg}{RGB}{236,241,251}
+\definecolor{muted}{RGB}{168,178,200}
+
+\mode<presentation>{}
+\usetheme{default}
+\usefonttheme{professionalfonts}
+
+\setbeamercolor{background canvas}{bg=bgnavy}
+\setbeamercolor{normal text}{fg=lightfg,bg=bgnavy}
+\setbeamercolor{frametitle}{fg=cyanH,bg=bgnavy}
+\setbeamercolor{itemize item}{fg=cyanH}
+\setbeamercolor{itemize subitem}{fg=violetH}
+\setbeamercolor{enumerate item}{fg=cyanH}
+\setbeamercolor{alerted text}{fg=cyanH}
+\setbeamercolor{block title}{fg=bgnavy,bg=cyanH}
+\setbeamercolor{block body}{fg=lightfg,bg=panel}
+\setbeamercolor{block title alerted}{fg=lightfg,bg=violetH}
+\setbeamercolor{block body alerted}{fg=lightfg,bg=panel}
+\setbeamercolor{block title example}{fg=lightfg,bg=violetH}
+\setbeamercolor{block body example}{fg=lightfg,bg=panel}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{block title}{series=\bfseries,size=\small}
+\setbeamerfont{itemize/enumerate body}{size=\footnotesize}
+\setbeamerfont{itemize/enumerate subbody}{size=\scriptsize}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\raise0.2ex\hbox{\textbullet}}
+\setbeamertemplate{itemize subitem}{\raise0.2ex\hbox{\scriptsize\textbullet}}
+\setbeamersize{text margin left=0.6cm, text margin right=0.6cm}
+
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip%
+  \vskip4pt%
+  {\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\par}%
+  \vskip2pt%
+  {\color{cyanH}\rule{\textwidth}{0.9pt}}%
+  \vskip4pt%
+}
+
+\setbeamertemplate{footline}{%
+  \hspace*{0.6cm}%
+  {\color{muted}\scriptsize GlobalAstro Health \textendash{} K2/\textbackslash{}Labs}%
+  \hfill%
+  {\color{muted}\scriptsize\insertframenumber\,/\,\inserttotalframenumber}%
+  \hspace*{0.6cm}\vspace{0.25cm}%
+}
+
+\newcommand{\src}[1]{{\color{muted}\scriptsize #1}}
+
+% ====================================================================
+\begin{document}
+
+% ---------- (1) TITRE ----------
+\begin{frame}[plain]
+\vspace{0.2cm}
+\begin{center}
+\includegraphics[width=0.30\textwidth]{logo_crop.png}\\[0.45cm]
+{\color{cyanH}\Huge\bfseries GlobalAstro Health}\\[0.18cm]
+{\color{lightfg}\large Aide \`a la d\'ecision pour la sant\'e de l'\'equipage en mission longue}\\[0.5cm]
+{\color{lightfg}\small\textbf{NASA Space Apps Challenge 2026}}\\[0.12cm]
+{\color{muted}\small D\'efi : \og{}Create Health Monitoring Software for Astronauts on Space Missions\fg{}}\\[0.35cm]
+{\color{lightfg}\normalsize \'Equipe \textbf{K2/\textbackslash{}Labs} --- six personnes}\\[0.1cm]
+{\color{muted}\small 15 novembre 2026}
+\end{center}
+\end{frame}
+
+% ---------- (2) LE PROBLEME ----------
+\begin{frame}{Le probl\`eme}
+{\color{cyanH}\bfseries Cinq dangers document\'es par le Human Research Program de la NASA}%
+\par\vspace{0.18cm}
+\begin{columns}[t]
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+  \item Rayonnement spatial
+  \item Isolement et confinement
+  \item Distance de la Terre
+  \item Gravité alt\'er\'ee
+  \item Environnement ferm\'e hostile
+\end{itemize}
+\end{column}
+\begin{column}{0.5\textwidth}
+\footnotesize
+Ces dangers produisent :
+\begin{itemize}
+  \item des changements immunitaires ;
+  \item une perte de densit\'e osseuse ;
+  \item des \'ev\'enements cardiovasculaires ;
+  \item des troubles du comportement.
+\end{itemize}
+\end{column}
+\end{columns}
+\vspace{0.15cm}
+\begin{block}{Ce qui rend le suivi si difficile}
+\small
+\textbf{Aucun m\'edecin \`a bord.} Le signal met des dizaines de minutes pour atteindre la Terre : impossible de demander un avis au moment o\`u le corps change. L'\'enonc\'e du d\'efi le reconna\^{\i}t lui-m\^eme : les astronautes portent une grande part de la responsabilit\'e de rep\'erer ces changements.
+\end{block}
+\end{frame}
+
+% ---------- (3) LA QUESTION ET LA REPONSE ----------
+\begin{frame}{La question pos\'ee et la r\'eponse apport\'ee}
+\begin{center}
+\vspace{0.1cm}
+{\color{cyanH}\Large\bfseries \og{}Quand un r\'esultat justifie-t-il l'attention de l'\'equipage ou des chirurgiens de vol ?\fg{}}
+\vspace{0.1cm}
+\end{center}
+\vspace{0.1cm}
+\begin{itemize}
+  \item Une courbe qui d\'efile ne r\'epond pas \`a cette question : elle montre des chiffres, pas une d\'ecision.
+  \item Le verrou n'est pas la mesure, c'est le \textbf{jugement} : reconna\^{\i}tre un changement digne d'attention, \`a bord, sans m\'edecin, sans retour imm\'ediat du sol.
+\end{itemize}
+\vspace{0.15cm}
+\begin{block}{La r\'eponse : un outil d'aide \`a la d\'ecision}
+\small
+Rendre l'\'equipage capable de \textbf{rep\'erer seul} les changements de sant\'e en mission longue, et \textbf{pr\'eparer} la d\'ecision du m\'edecin au sol sans jamais pr\'etendre agir en direct.
+\end{block}
+\end{frame}
+
+% ---------- (4) CE QUI A ETE CONSTRUIT ----------
+\begin{frame}{Ce qui a \'et\'e construit : deux interfaces, deux m\'etiers}
+\begin{columns}[t]
+\begin{column}{0.5\textwidth}
+\begin{block}{\`A bord --- l'astronaute (7 \'ecrans)}
+\footnotesize
+\begin{itemize}
+  \item tableau de bord des indicateurs ;
+  \item Os et C\oe{}ur ;
+  \item Sant\'e mentale ;
+  \item rayonnement, exprim\'e en \textbf{pourcentage de la limite de carri\`ere} (jamais en millisieverts absolus : la limite NASA est d\'efinie en risque) ;
+  \item alertes avec actions correctives ;
+  \item mode hors ligne ;
+  \item r\'eception des consignes venues du sol.
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.5\textwidth}
+\begin{block}{Au sol --- le m\'edecin (4 \'ecrans)}
+\footnotesize
+\begin{itemize}
+  \item \'etat de l'\'equipage avec les valeurs re\c{c}ues ;
+  \item alertes d\'eriv\'ees des mesures hors plage ;
+  \item journal des mesures re\c{c}ues du bord ;
+  \item cycle complet d'une consigne : \`a la prochaine fen\^etre, puis livr\'ee au bord, puis lue par l'\'equipage.
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\vspace{0.05cm}
+{\color{cyanH}\footnotesize Le d\'elai de communication n'est pas d\'ecoratif : il structure l'interface du sol, qui ne propose jamais d'agir en direct, seulement de pr\'eparer.}
+\end{frame}
+
+% ---------- (5) COMMENT CA FONCTIONNE ----------
+\begin{frame}{Comment \c{c}a fonctionne : la cha\^{\i}ne technique}
+\begin{center}
+\begin{tikzpicture}[font=\tiny,node distance=3mm,
+  box/.style={draw=cyanH,rounded corners=2pt,fill=panel,text=lightfg,inner sep=3pt,align=center,minimum height=7mm},
+  arr/.style={-{Latex[length=1.8mm]},draw=cyanH,thick}]
+\node[box] (cap) {15 capteurs\\25 param\`etres};
+\node[box,right=of cap] (mod) {Module central\\Python hors ligne};
+\node[box,right=of mod] (win) {Fen\^etre de\\communication};
+\node[box,right=of win,draw=violetH] (db) {Base PostgreSQL\\au sol (Supabase)};
+\draw[arr] (cap) -- (mod);
+\draw[arr] (mod) -- (win);
+\draw[arr] (win) -- (db);
+\end{tikzpicture}
+\end{center}
+\vspace{0.08cm}
+\begin{itemize}
+  \item \textbf{\`A bord.} 15 capteurs (MAX30102, MAX30205, MH-Z19, MPU6050, DEXA, Jamar, Omron, GSR, dosim\`etre, bracelet, ceinture, laboratoire, calcul, InBody, balance) mesurent 25 param\`etres.
+  \item Un module central en Python (\texttt{http.server}, \textbf{aucune d\'ependance}) calcule seuils et statuts et tient une base locale : \textbf{aucune d\'ependance au r\'eseau}.
+  \item \textbf{Fen\^etre de communication.} Les mesures restent \`a bord et repartent \`a la fen\^etre suivante.
+  \item \textbf{Au sol.} Une base PostgreSQL h\'eberg\'ee (Supabase) porte les comptes, les consignes et les mesures re\c{c}ues ; le site est statique, l'API REST tient lieu de serveur.
+\end{itemize}
+\end{frame}
+
+% ---------- (6) DONNEES NASA ET ASC ----------
+\begin{frame}{Les donn\'ees de la NASA et de l'Agence spatiale canadienne}
+\footnotesize
+\begin{itemize}
+  \item \textbf{Taxonomie des cinq dangers} du Human Research Program de la NASA. \src{nasa.gov/hrp/hazards/}
+  \item \textbf{Human Research Roadmap} --- risque 77 (os), 179 (cardiovasculaire), 99 (comportemental), 175 (autonomie vis-\`a-vis de la Terre). \src{humanresearchroadmap.nasa.gov/risks/}
+  \item \textbf{NASA-STD-3001 \S\,4.2.10} --- limite de dose de carri\`ere, \textbf{d\'efinie en risque et non en millisieverts absolus}.
+  \item \textbf{Agence spatiale canadienne} --- classification du rayonnement spatial ; part des neutrons (environ 30~\% de la dose \`a bord de la Station spatiale) ; contre-mesure Radi-N2 : cartographier les zones les mieux prot\'eg\'ees du v\'ehicule pour y replier l'\'equipage lors d'une \'eruption solaire. \src{asc-csa.gc.ca}
+  \item \textbf{Risque cardiovasculaire} de la NASA et contre-mesure LBNP ; \textbf{risque musculaire}. \src{nasa.gov}
+  \item \textbf{Contre-mesures d'exercice} r\'eellement utilis\'ees \`a bord de la Station spatiale : ARED, tapis roulant T2, v\'elo CEVIS.
+\end{itemize}
+\end{frame}
+
+% ---------- (7) ETAT DU PROJET ----------
+\begin{frame}{\'Etat du projet : prototype fonctionnel}
+\begin{columns}[t]
+\begin{column}{0.5\textwidth}
+\begin{block}{Ce qui fonctionne r\'eellement}
+\begin{itemize}
+  \item les deux interfaces, l'inscription et la connexion ;
+  \item le cycle des consignes avec accus\'e de r\'eception ;
+  \item le calcul des seuils et des alertes ;
+  \item les 15 capteurs et leurs 25 param\`etres ;
+  \item la base du sol et la transmission des mesures \`a la fen\^etre.
+\end{itemize}
+\end{block}
+\vspace{-0.45cm}
+\begin{block}{Ce qui reste \`a construire}
+\begin{itemize}
+  \item la transmission spatiale r\'eelle ;
+  \item le chiffrement des paquets ;
+  \item un vrai mod\`ele de s\'ecurit\'e pour la base du sol.
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.5\textwidth}
+\begin{block}{Ce qui est simul\'e}
+\footnotesize
+Les \textbf{valeurs} elles-m\^emes : aucune donn\'ee m\'edicale r\'eelle n'est publique. L'\'ecran indique toujours l'origine du chiffre affich\'e : \og{}capteurs du module\fg{} ou \og{}simulation\fg{} ; aucune valeur simul\'ee n'est pr\'esent\'ee comme r\'eelle.
+\end{block}
+\vspace{-0.45cm}
+\begin{block}{Acc\`es et pile technique}
+\footnotesize
+Application en ligne : \textbf{www.globalastro.health}\\
+D\'ep\^ot : \textbf{github.com/mamboxdev-x/globalastro-health}\\
+Pile : React 19, TypeScript, Vite, Python 3, PostgreSQL (Supabase) ; polices embarqu\'ees ; courbes SVG, aucune biblioth\`eque de graphiques.
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\end{document}

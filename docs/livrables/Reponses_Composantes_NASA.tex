@@ -1,0 +1,342 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{a4paper,left=2.2cm,right=2.2cm,top=2.3cm,bottom=2.3cm}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+\let\sectionorig\section
+\renewcommand{\section}{\Needspace{5\baselineskip}\sectionorig}
+
+\newcommand{\kl}{K2/\textbackslash{}Labs}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small Composantes du projet --- réponses}
+\fancyhead[R]{\small Équipe \kl}
+\fancyfoot[C]{\small\thepage}
+
+\setlist[itemize]{topsep=2pt,itemsep=1.5pt,parsep=0pt,leftmargin=1.2em}
+\setlist[enumerate]{topsep=2pt,itemsep=1.5pt,parsep=0pt,leftmargin=1.6em}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\begin{document}
+
+\begin{titlepage}
+\thispagestyle{empty}
+\centering
+\vspace*{2.4cm}
+
+{\Huge\bfseries Composantes du projet}\\[0.45cm]
+{\Large R\'eponses au formulaire de soumission}\\[0.3cm]
+{\large GlobalAstro Health}\\[1.6cm]
+
+\rule{0.72\textwidth}{0.6pt}\\[0.45cm]
+{\large NASA Space Apps Challenge 2026}\\[0.15cm]
+{\normalsize D\'efi : Create Health Monitoring Software for Astronauts on Space Missions}\\[0.45cm]
+\rule{0.72\textwidth}{0.6pt}\\[1.6cm]
+
+{\large\bfseries \'Equipe \kl}\\[0.25cm]
+{\normalsize Six membres}\\[2.0cm]
+
+\begin{tabular}{@{}ll@{}}
+\small Version & \small 1.0 \\[2pt]
+\small Date & \small 15 novembre 2026 \\[2pt]
+\small Application & \small \url{https://www.globalastro.health} \\
+\end{tabular}
+
+\vfill
+{\footnotesize Ce document contient le texte \`a reporter dans le formulaire, point par point, dans l'ordre o\`u il les demande.}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ================================================================
+\section{Nom du projet et r\'esum\'e g\'en\'eral}
+
+\textbf{Nom du projet :} GlobalAstro Health
+
+\vspace{0.25cm}
+\noindent\rule{\textwidth}{0.4pt}
+\vspace{0.15cm}
+
+\noindent\emph{R\'esum\'e (158 mots, contrainte : 50 \`a 200) :}
+
+\begin{quote}
+En mission longue, personne ne peut surveiller l'\'equipage : il n'y a pas de m\'edecin \`a bord, et
+le signal met des dizaines de minutes \`a atteindre la Terre. Les astronautes portent donc eux-m\^emes
+la responsabilit\'e de rep\'erer les changements de leur sant\'e. Un tableau de bord qui d\'efile ne
+r\'epond pas \`a cette question. GlobalAstro Health est un syst\`eme d'aide \`a la d\'ecision
+construit autour d'une seule question : quand un r\'esultat justifie-t-il l'attention de l'\'equipage
+ou des chirurgiens de vol ? Il \'equipe les deux extr\'emit\'es de la mission. \`A bord, sept \'ecrans
+donnent \`a l'\'equipage les moyens de rep\'erer seul une d\'erive : indicateurs, os et c\oe{}ur,
+sant\'e mentale, rayonnement, alertes, mode hors ligne, consignes re\c{c}ues. Au sol, quatre \'ecrans
+donnent au m\'edecin l'\'etat de l'\'equipage et le cycle complet d'une consigne, de sa pr\'eparation
+\`a son accus\'e de r\'eception. Les cinq dangers document\'es par le programme de recherche humaine
+de la NASA structurent l'interface.
+\end{quote}
+
+\noindent\rule{\textwidth}{0.4pt}
+
+% ================================================================
+\section{Lien vers le projet et lien vers la d\'emonstration}
+
+\textbf{Attention : le formulaire ne demande qu'UN SEUL lien} --- soit un diaporama de sept
+diapositives au maximum (la page de titre compte), soit une vid\'eo de trente secondes sous-titr\'ee
+en anglais. \emph{C'est le point \`a trancher avant de soumettre.}
+
+\vspace{0.2cm}
+\textbf{Lien du projet :} \url{https://www.globalastro.health}
+
+\vspace{0.2cm}
+\textbf{Lien \`a donner comme d\'emonstration --- choisir l'un des deux :}
+
+\begin{tabularx}{\textwidth}{@{}L{3.6cm} X@{}}
+\toprule
+\textbf{Option} & \textbf{Ce qu'il faut faire} \\
+\midrule
+Diaporama (conseill\'e) & D\'eposer le diaporama de sept diapositives sur un espace public (Drive ou d\'ep\^ot de code) et coller le lien. \\
+Vid\'eo de 30 s & Enregistrer l'\'ecran, sous-titres anglais obligatoires, d\'eposer sur YouTube, lien public. \\
+\bottomrule
+\end{tabularx}
+
+\vspace{0.25cm}
+\textbf{Trois v\'erifications avant de coller un lien :}
+
+\begin{enumerate}
+  \item ouvrir le lien dans une fen\^etre de navigation priv\'ee : aucun mot de passe, aucune connexion,
+        aucune demande d'autorisation ne doit appara\^itre ;
+  \item v\'erifier que le lien est accessible sans compte (ni Google, ni d\'ep\^ot) ;
+  \item v\'erifier qu'aucune personne de moins de dix-huit ans n'appara\^it \`a l'image ou au son.
+\end{enumerate}
+
+\vspace{0.2cm}
+\textbf{Comptes d'acc\`es \`a indiquer aux \'evaluateurs} (l'application demande une connexion et est
+livr\'ee avec deux comptes pr\^ets) :
+
+\begin{center}
+\begin{tabular}{@{}L{4.4cm} L{4.4cm} L{3.0cm}@{}}
+\toprule
+\textbf{R\^ole} & \textbf{Identifiant} & \textbf{Mot de passe} \\
+\midrule
+Astronaute \`a bord & \code{cdr.mbaye} & \code{orbite2026} \\
+M\'edecin au sol & \code{dr.anderson} & \code{orbite2026} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent{\small Un \'evaluateur peut aussi cr\'eer son propre compte depuis l'\'ecran de connexion, en
+choisissant son r\^ole.}
+% ================================================================
+\section{D\'etails du projet}
+
+\subsection{Que fait-il exactement ?}
+
+Le syst\`eme sert deux m\'etiers, avec deux interfaces enti\`erement diff\'erentes selon qui se
+connecte.
+
+\vspace{0.2cm}
+\textbf{\`A bord, pour l'\'equipage --- sept \'ecrans :}
+
+\begin{enumerate}
+  \item \textbf{Tableau de bord} --- les indicateurs de l'\'equipage r\'eunis, chacun avec sa
+        r\'ef\'erence pr\'e-vol et sa tendance, pour rep\'erer une d\'erive et non lire un chiffre.
+  \item \textbf{Os et c\oe{}ur} --- densit\'e min\'erale osseuse et param\`etres cardiovasculaires, avec
+        les contre-mesures d'exercice r\'eellement utilis\'ees \`a bord de la Station spatiale.
+  \item \textbf{Sant\'e mentale} --- sommeil, charge de travail et moral : le danger
+        \og isolement et confinement \fg{}.
+  \item \textbf{Rayonnement} --- l'exposition en \textbf{pourcentage de la limite de carri\`ere},
+        jamais en millisieverts absolus, avec la contre-mesure d'abri.
+  \item \textbf{Alertes} --- l'\'ecart constat\'e, la conduite \`a tenir, et l'action corrective \`a
+        cocher.
+  \item \textbf{Hors ligne} --- ce qui continue de fonctionner sans liaison, et la pr\'eparation de la
+        demande de synchronisation.
+  \item \textbf{Instructions} --- les consignes venues du sol, avec accus\'e de r\'eception.
+\end{enumerate}
+
+\vspace{0.2cm}
+\textbf{Au sol, pour le m\'edecin --- quatre vues :}
+
+\begin{enumerate}
+  \item \textbf{\'Equipage} --- les membres suivis, leurs valeurs re\c{c}ues \`a la derni\`ere
+        fen\^etre, l'\'ecart \`a la r\'ef\'erence ; toute personne inscrite appara\^it, y compris
+        depuis un autre appareil.
+  \item \textbf{Alertes} --- d\'eriv\'ees automatiquement des mesures hors plage, jamais saisies \`a
+        la main.
+  \item \textbf{Journal} --- les derni\`eres mesures re\c{c}ues du bord, tri\'ees par gravit\'e, avec la
+        plage attendue.
+  \item \textbf{Consignes} --- l'\'ecriture d'une consigne et son cycle : \emph{en attente},
+        \emph{livr\'ee au bord}, \emph{lue par l'\'equipage}.
+\end{enumerate}
+
+\subsection{Comment fonctionne-t-il ?}
+
+\textbf{\`A bord}, quinze capteurs (oxym\`etre MAX30102, thermom\`etre MAX30205, capteur de CO\textsubscript{2}
+MH-Z19, centrale inertielle MPU6050, DEXA, dynamom\`etre Jamar, tensiom\`etre Omron, r\'esistance
+cutan\'ee, dosim\`etre, bracelet, ceinture, laboratoire, calcul, InBody, balance) produisent vingt-cinq
+param\`etres physiologiques et environnementaux. Ils alimentent un \textbf{module central \'ecrit en
+Python}, sans aucune d\'ependance externe, qui calcule les seuils, attribue un statut (nominal, \`a
+suivre, critique) et tient l'historique local. \textbf{Rien dans cette cha\^ine ne d\'epend du
+r\'eseau} : une coupure de liaison ne doit pas interrompre la surveillance.
+
+\textbf{La liaison est le c\oe{}ur du raisonnement.} Il n'y a pas de flux continu entre le bord et la
+Terre. Les mesures restent \`a bord et partent \`a la \textbf{fen\^etre de communication}. C'est pour
+cela que l'interface du sol ne propose jamais d'agir en direct : elle pr\'epare, l'\'equipage applique,
+et l'accus\'e de r\'eception remonte \`a la fen\^etre suivante. Le d\'elai n'est pas un d\'etail
+d'impl\'ementation, c'est ce qui d\'efinit les deux m\'etiers.
+
+\textbf{Au sol}, une base h\'eberg\'ee (PostgreSQL) porte les comptes, les consignes et les mesures
+re\c{c}ues. Le site \'etant statique, c'est son interface REST qui tient lieu de serveur applicatif.
+
+\subsection{Quels avantages apporte-t-il ?}
+
+\begin{itemize}
+  \item \textbf{Il r\'epond \`a la question du d\'efi, pas \`a une autre.} La difficult\'e n'est pas de
+        mesurer, c'est de d\'ecider quand une mesure m\'erite une action.
+  \item \textbf{Il tient compte du d\'elai r\'eel.} Aucune promesse d'intervention imm\'ediate : le sol
+        pr\'epare.
+  \item \textbf{Il est utilisable par un non-m\'edecin.} Les \'ecrans parlent de conduite \`a tenir
+        avant de parler de pathologie.
+  \item \textbf{Il fonctionne hors ligne}, ce qui est la condition de survie de tout outil embarqu\'e.
+  \item \textbf{Il ne ment jamais sur ses donn\'ees.} Chaque valeur affich\'ee indique sa provenance, et
+        le syst\`eme dit clairement ce qui est mesur\'e, ce qui est simul\'e et ce qui reste \`a
+        construire.
+  \item \textbf{Il relie r\'eellement les deux extr\'emit\'es.} Une consigne \'ecrite au sol arrive \`a
+        bord, et l'accus\'e de r\'eception revient : la boucle compl\`ete est d\'emontr\'ee, pas
+        d\'ecrite.
+\end{itemize}
+
+% ================================================================
+\section{Utilisation de l'intelligence artificielle}
+
+\noindent{\small Le formulaire pr\'ecise que cette r\'eponse sert uniquement \`a la collecte de
+donn\'ees et que les juges ne la voient pas. En revanche, ils peuvent voir tout indicateur de
+g\'en\'eration par intelligence artificielle pr\'esent dans le projet. Nous avons donc choisi de
+l'\'ecrire aussi dans la description du projet, plut\^ot que de le laisser deviner.}
+
+\vspace{0.25cm}
+\begin{tabularx}{\textwidth}{@{}L{3.9cm} X@{}}
+\toprule
+\textbf{Outil} & \textbf{O\`u et comment il a \'et\'e utilis\'e} \\
+\midrule
+Agent de d\'eveloppement assist\'e par un grand mod\`ele de langage & \'Ecriture et relecture du code des deux interfaces, du module central et de la base du sol ; r\'edaction de la documentation ; \'ecriture des scripts de v\'erification ; analyse des mesures pour v\'erifier la coh\'erence entre les deux postes. Utilis\'e comme outil de d\'eveloppement, sous d\'ecision et relecture humaines. \\
+\textbf{\`a compl\'eter} & Documents, pr\'esentation et visuels : \`a pr\'eciser selon ce que chaque membre de l'\'equipe a utilis\'e. \\
+\bottomrule
+\end{tabularx}
+
+\vspace{0.25cm}
+\textbf{Pr\'ecisions que nous apportons :}
+
+\begin{itemize}
+  \item \textbf{Aucun \'el\'ement de marque ou de design de la NASA n'a \'et\'e g\'en\'er\'e ni
+        utilis\'e} (logo, drapeau, identifiant de mission, police, habillage). La NASA n'approuve
+        aucune entit\'e non gouvernementale am\'ericaine : nous citons ses ressources, nous ne les
+        republions pas, et nous ne nous pr\'esentons pas comme approuv\'es par elle.
+  \item \textbf{Les valeurs affich\'ees sont simul\'ees}, et l'interface l'indique. Aucune donn\'ee
+        m\'edicale r\'eelle n'est utilis\'ee : aucune donn\'ee personnelle n'a donc transity\'e par un
+        outil d'intelligence artificielle.
+  \item \textbf{Aucune image de synth\`ese ne figure dans le produit.} L'identit\'e visuelle a \'et\'e
+        cr\'e\'ee par l'\'equipe.
+\end{itemize}
+% ================================================================
+\section{Donn\'ees de la NASA utilis\'ees}
+
+\noindent{\small Rappel du r\`eglement : au moins une ressource NASA du d\'efi est obligatoire pour
+concourir aux prix mondiaux.}
+
+\vspace{0.25cm}
+\begin{tabularx}{\textwidth}{@{}L{4.9cm} X@{}}
+\toprule
+\textbf{Ressource} & \textbf{Ce que nous en avons tir\'e, et lien} \\
+\midrule
+Taxonomie des cinq dangers des vols spatiaux habit\'es --- programme de recherche humaine de la NASA & La colonne vert\'ebrale de l'interface : les cinq dangers structurent les \'ecrans, et chaque \'ecran renvoie au danger correspondant. \newline \url{https://www.nasa.gov/hrp/hazards/} \\
+Human Research Roadmap --- risque 77 & \emph{Risk of Bone Fracture due to Spaceflight-induced Changes to Bone} : fonde l'\'ecran \og Os et c\oe{}ur \fg{}. \newline \url{https://humanresearchroadmap.nasa.gov/risks/} \\
+Human Research Roadmap --- risque 179 & \emph{Risk of Cardiovascular Adaptations Contributing to Adverse Mission Performance and Health Outcomes}. \newline \url{https://humanresearchroadmap.nasa.gov/risks/} \\
+Human Research Roadmap --- risque 99 & \emph{Risk of Adverse Cognitive or Behavioral Changes and Psychiatric Disorders} : fonde l'\'ecran \og Sant\'e mentale \fg{}. \newline \url{https://humanresearchroadmap.nasa.gov/risks/} \\
+Human Research Roadmap --- risque 175 & \emph{Risk of Adverse Mission Outcomes Due to Earth Independent Human-Systems Operations} : fonde l'\'ecran \og Hors ligne \fg{}. \newline \url{https://humanresearchroadmap.nasa.gov/risks/} \\
+NASA-STD-3001, volume 1, \S4.2.10 & La limite de dose de carri\`ere s'exprime en risque, non en millisieverts absolus : c'est pourquoi l'\'ecran \og Rayonnement \fg{} affiche un pourcentage de cette limite. \newline \url{https://standards.nasa.gov/standard/nasa/nasa-std-3001} \\
+NASA --- risque cardiovasculaire & La contre-mesure de pression n\'egative des membres inf\'erieurs. \newline \url{https://www.nasa.gov/directorates/esdmd/hhp/cv-risk/} \\
+NASA --- risque musculaire & L'effet d'un programme d'exercice suivi sur la r\'ecup\'eration musculaire. \newline \url{https://www.nasa.gov/directorates/esdmd/hhp/muscle-risk/} \\
+Liste des risques du programme de recherche humaine & La liste compl\`ete des risques, parcourue pour v\'erifier qu'aucun danger n'est oubli\'e. \newline \url{https://www.nasa.gov/hrp/risks/} \\
+\bottomrule
+\end{tabularx}
+
+\vspace{0.25cm}
+\textbf{Comment ces ressources sont utilis\'ees, concr\`etement :} elles ne sont pas cit\'ees en
+bibliographie, elles \textbf{d\'ecident de la structure du produit}. Les cinq dangers d\'eterminent les
+cinq familles d'\'ecrans \`a bord ; la formulation de la limite de dose par la NASA interdit
+d'afficher une dose en millisieverts absolus ; la contre-mesure d'abri lors d'une \'eruption solaire
+devient une action propos\'ee \`a l'\'equipage.
+
+% ================================================================
+\section{Donn\'ees des agences spatiales partenaires et autres ressources}
+
+\noindent{\small Facultatif, mais encourag\'e.}
+
+\vspace{0.25cm}
+\begin{tabularx}{\textwidth}{@{}L{4.9cm} X@{}}
+\toprule
+\textbf{Ressource} & \textbf{Ce que nous en avons tir\'e, et lien} \\
+\midrule
+Agence spatiale canadienne --- \emph{How does radiation affect the human body in space?} & Les trois composantes du rayonnement spatial (rayons cosmiques galactiques, particules solaires, rayonnement pi\'eg\'e), les effets \`a long terme (cataractes, cancers, atteinte de la descendance), et le fait qu'en orbite basse l'atmosph\`ere et le champ magn\'etique terrestre prot\`egent encore en partie. \newline \url{https://asc-csa.gc.ca/eng/astronauts/space-medicine/radiation.asp} \\
+Agence spatiale canadienne --- exp\'erience \textbf{Radi-N2} & La part des neutrons (environ 30\,\% de la dose re\c{c}ue \`a bord de la Station spatiale) et la contre-mesure : cartographier les zones les plus prot\'eg\'ees du v\'ehicule pour y replier l'\'equipage lors d'une \'eruption solaire majeure. \newline \url{https://asc-csa.gc.ca/eng/sciences/radi-n2.asp} \\
+\bottomrule
+\end{tabularx}
+
+\vspace{0.25cm}
+\textbf{Autres ressources techniques utilis\'ees :}
+
+\begin{tabularx}{\textwidth}{@{}L{5.2cm} X@{}}
+\toprule
+\textbf{Ressource} & \textbf{Usage} \\
+\midrule
+React 19, TypeScript, Vite & Interfaces des deux postes \\
+Python 3 (biblioth\`eque standard seule) & Module central \`a bord, sans aucune d\'ependance externe \\
+PostgreSQL (service h\'eberg\'e) & Base du sol : comptes, consignes, mesures re\c{c}ues \\
+Documentation des capteurs (MAX30102, MAX30205, MH-Z19, MPU6050, DEXA, Jamar, Omron) & R\'ef\'erences r\'eelles des quinze capteurs d\'ecrits \\
+\bottomrule
+\end{tabularx}
+
+% ================================================================
+\section{R\'ecapitulatif avant de soumettre}
+
+\begin{tabularx}{\textwidth}{@{}L{7.4cm} X@{}}
+\toprule
+\textbf{Point du formulaire} & \textbf{\'Etat} \\
+\midrule
+Nom du projet & Fait \\
+R\'esum\'e g\'en\'eral (50 \`a 200 mots) & Fait --- 158 mots \\
+Lien du projet & Fait --- \url{https://www.globalastro.health} \\
+Lien de la d\'emonstration (diaporama ou vid\'eo) & \textbf{\`a h\'eberger, puis \`a coller} \\
+D\'etails du projet & Fait \\
+Utilisation de l'intelligence artificielle & Fait --- reste \`a compl\'eter par les autres membres \\
+Donn\'ees de la NASA & Fait --- neuf ressources, dont cinq risques du Human Research Roadmap \\
+Donn\'ees des agences partenaires & Fait --- deux ressources de l'Agence spatiale canadienne \\
+V\'erification en navigation priv\'ee & \`a faire le jour de la soumission \\
+\bottomrule
+\end{tabularx}
+
+\vspace{0.6cm}
+\noindent\rule{\textwidth}{0.4pt}
+\vspace{0.25cm}
+
+\noindent{\small NB : les ressources cit\'ees appartiennent \`a la NASA et \`a l'Agence spatiale
+canadienne. Elles sont r\'ef\'erenc\'ees, jamais republi\'ees. La NASA n'approuve aucune entit\'e non
+gouvernementale am\'ericaine et d\'ecline toute responsabilit\'e quant aux informations figurant sur
+les sites non gouvernementaux.}
+
+\end{document}
