@@ -20,6 +20,13 @@ Site en ligne : **https://www.globalastro.health**
 
 ---
 
+## Langue de l'interface
+
+L'interface se lit en **français ou en anglais**, par un bouton dans le bandeau latéral, sous le
+choix du thème. Le français reste la langue de référence : les écrans sont écrits en français, et
+l'anglais est posé par-dessus au moment de l'affichage (`src/i18n/`). Une traduction manquante
+laisse le texte français — jamais de trou, jamais de clé technique à l'écran.
+
 ## Emploi de l'intelligence artificielle
 
 Le règlement du défi demande de déclarer les outils d'intelligence artificielle employés, et
