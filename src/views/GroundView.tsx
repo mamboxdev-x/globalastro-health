@@ -54,13 +54,17 @@ const EQUIPAGE = [
   },
 ];
 
+/** Identifiants déjà connus comme membres d'équipage : ils ne doivent pas être comptés deux fois. */
+const IDENTIFIANTS_EQUIPAGE = new Set(EQUIPAGE.map((membre) => membre.identifiant.toLowerCase()));
+
 /**
  * Un astronaute inscrit dans ce navigateur doit apparaître chez le médecin :
- * sinon le compte n'existe que pour la personne qui l'a créé.
+ * sinon le compte n'existe que pour la personne qui l'a créé. Les membres d'équipage déjà
+ * suivis (les trois de la station) sont écartés, sans quoi ils apparaîtraient en double.
  */
 function depuisComptes(comptes: Compte[]) {
   return comptes
-    .filter((compte) => compte.role === "astro")
+    .filter((compte) => compte.role === "astro" && !IDENTIFIANTS_EQUIPAGE.has(compte.identifiant.toLowerCase()))
     .map((compte) => {
       const profil = compte.profil;
       const details = [
@@ -712,6 +716,19 @@ const NAV: { id: VueSol; label: string }[] = [
   { id: "consignes", label: "Consignes envoyées" },
 ];
 
+/** Comme à bord : le poste sol retrouve l'onglet où on l'a laissé après un rafraîchissement. */
+const CLE_VUE_SOL = "globalastro-vue-sol-v1";
+
+function lireVueSol(): VueSol {
+  if (typeof window === "undefined") return "equipage";
+  try {
+    const garde = window.localStorage.getItem(CLE_VUE_SOL);
+    return NAV.some((entree) => entree.id === garde) ? (garde as VueSol) : "equipage";
+  } catch {
+    return "equipage";
+  }
+}
+
 export default function GroundView() {
   const { theme, comptes } = useSession();
   const { sol } = useBackend();
@@ -719,7 +736,7 @@ export default function GroundView() {
   const { membres } = useEquipageSimule();
   const equipeInscrite = depuisComptes(comptes);
   const [menuOuvert, setMenuOuvert] = useState(false);
-  const [vue, setVue] = useState<VueSol>("equipage");
+  const [vue, setVue] = useState<VueSol>(lireVueSol);
   const [consigneTexte, setConsigneTexte] = useState("Reporter l’exercice ARED et viser 8 h de sommeil sur 3 nuits");
   const [destinataire, setDestinataire] = useState("");
   // Les consignes vivent dans un magasin partagé : l’astronaute doit les retrouver de son
@@ -727,6 +744,14 @@ export default function GroundView() {
   const { liste: consignesPartagees, ajouter } = useConsignes();
   const [traitees, setTraitees] = useState<string[]>([]);
   const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CLE_VUE_SOL, vue);
+    } catch {
+      /* stockage indisponible */
+    }
+  }, [vue]);
 
   // Un destinataire est un identifiant de connexion : c’est avec celui-ci que l’astronaute
   // se connecte de son côté, et c’est donc celui-ci qui doit figurer sur la consigne.

@@ -217,6 +217,29 @@ export const connexionModule = (identifiant: string, motDePasse: string) =>
 
 export const astronautesModule = () => appel<CompteModule[]>(ADRESSE_MODULE, "/astronautes", {});
 
+/* -------------------------------------------------- consignes (module) ---- */
+
+export type ConsigneModule = {
+  id: string;
+  destinataire: string;
+  texte: string;
+  mise_en_file: string;
+  etat: string;
+  cree_le: string;
+  lue_le: string;
+};
+
+export const consignesModule = () => appel<ConsigneModule[]>(ADRESSE_MODULE, "/consignes", {}, { delai: 2_500 });
+
+export const envoyerConsigneModule = (destinataire: string, texte: string, miseEnFile: string) =>
+  appel<{ ok: boolean; consigne?: ConsigneModule; erreur?: string }>(ADRESSE_MODULE, "/consignes", {}, {
+    methode: "POST",
+    corps: { destinataire, texte, mise_en_file: miseEnFile },
+  });
+
+export const etatConsigneModule = (id: string, etat: string) =>
+  appel<{ ok: boolean }>(ADRESSE_MODULE, `/consignes/${id}/etat`, {}, { methode: "POST", corps: { etat } });
+
 /* --------------------------------------------------------------- sonde ----- */
 
 export type EtatBackend = { bord: boolean; sol: boolean; module: boolean; mode: "live" | "demo" };

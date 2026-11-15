@@ -24,6 +24,20 @@ const moduleCode: Record<ScreenName, string> = {
   Instructions: "MSG-07",
 };
 
+/** L'écran courant est mémorisé : un rafraîchissement ne doit pas ramener au tableau de bord. */
+const CLE_ECRAN = "globalastro-ecran-v1";
+const ECRANS = Object.keys(moduleCode) as ScreenName[];
+
+function lireEcran(): ScreenName {
+  if (typeof window === "undefined") return "Tableau de bord";
+  try {
+    const garde = window.localStorage.getItem(CLE_ECRAN);
+    return ECRANS.includes(garde as ScreenName) ? (garde as ScreenName) : "Tableau de bord";
+  } catch {
+    return "Tableau de bord";
+  }
+}
+
 function ActiveScreen({ active }: { active: ScreenName }) {
   switch (active) {
     case "Os & Cœur": return <BoneHeart />;
@@ -39,9 +53,17 @@ function ActiveScreen({ active }: { active: ScreenName }) {
 function AppShell() {
   const { role } = useSession();
   const { mode } = useBackend();
-  const [active, setActive] = useState<ScreenName>("Tableau de bord");
+  const [active, setActive] = useState<ScreenName>(lireEcran);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [utcNow, setUtcNow] = useState(() => new Date());
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CLE_ECRAN, active);
+    } catch {
+      /* stockage indisponible */
+    }
+  }, [active]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setUtcNow(new Date()), 30_000);

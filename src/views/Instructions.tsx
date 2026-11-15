@@ -111,8 +111,9 @@ export default function Instructions() {
                 <span className="u-row-k">
                   <b>Rien en attente</b>
                   <small>
-                    Le poste sol n’a pas mis d’instruction à votre nom. Celles-ci apparaissent après la prochaine
-                    fenêtre.
+                    {fileGenerale.length > 0
+                      ? `Aucune instruction à votre nom. Les ${fileGenerale.length} consigne(s) de la file sont adressées à d’autres membres — elles sont listées plus bas.`
+                      : "Le poste sol n’a pas mis d’instruction à votre nom. Celles-ci apparaissent après la prochaine fenêtre."}
                   </small>
                 </span>
                 <span className="u-chip">silence radio</span>
