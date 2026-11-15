@@ -613,16 +613,8 @@ export const DICTIONNAIRE_EN: Record<string, string> = {
     "Reassess the training load and report joint pain",
   "Dernières valeurs reçues du module central, avec le statut calculé par ses seuils":
     "Latest values received from the central module, with the status computed from its thresholds",
-  "Valeurs reçues à l’instant, identiques à celles du tableau de bord de chaque membre : une seule source alimente les deux interfaces.":
-    "Values received just now, identical to those on each member’s dashboard: a single source feeds both interfaces.",
-  "Mesures transmises par le bord à la dernière fenêtre de communication et conservées dans la base du sol. Le poste sol ne voit rien entre deux fenêtres — c’est tout l’enjeu du délai.":
-    "Measurements sent by the crew at the last communication window and kept in the ground database. The ground station sees nothing between two windows — that is the whole point of the delay.",
-  "Mesures vivantes de l’équipage : une seule source alimente les deux interfaces. Elles rejoindront la base du sol à la prochaine fenêtre de communication.":
-    "Live crew measurements: a single source feeds both interfaces. They will reach the ground database at the next communication window.",
   "Une consigne mise en file part à l’ouverture de la prochaine fenêtre, avec les mesures du lot. Elle reste en attente tant que la base du sol n’est pas joignable.":
     "A queued instruction leaves at the opening of the next window, with the batch of measurements. It stays pending as long as the ground database is unreachable.",
-  "Deux origines se mêlent ici : les consignes écrites sur le poste sol, dont l’état est lu auprès du backend (envoyée → transmise → lue), et celles restées dans la file locale faute de destinataire connu du poste sol — un astronaute inscrit dans ce navigateur, par exemple.":
-    "Two sources meet here: the instructions written on the ground station, whose state is read from the backend (queued → transmitted → read), and those left in the local queue for lack of a recipient known to the ground station — an astronaut registered in this browser, for instance.",
 };
 
 /**
