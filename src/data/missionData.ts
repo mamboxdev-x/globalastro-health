@@ -4,7 +4,7 @@ export type Metric = {
   value: string;
   unit?: string;
   reference: string;
-  status: "nominal" | "attention" | "unavailable";
+  status: "nominal" | "attention" | "critique" | "unavailable";
   statusLabel: string;
   points?: number[];
 };

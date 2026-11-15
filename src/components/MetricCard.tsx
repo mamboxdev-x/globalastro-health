@@ -5,6 +5,7 @@ export type { Metric } from "@/data/missionData";
 const TONE: Record<Metric["status"], { chip: string; ligne: string }> = {
   nominal: { chip: "is-ok", ligne: "nominal" },
   attention: { chip: "is-warn", ligne: "attention" },
+  critique: { chip: "is-alert", ligne: "critical" },
   unavailable: { chip: "", ligne: "nominal" },
 };
 

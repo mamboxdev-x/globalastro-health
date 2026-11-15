@@ -156,6 +156,72 @@ type ProfilSimule = {
   ecarts: Record<string, number>;
 };
 
+/** Une carte du tableau de bord, bâtie sur les mesures vivantes du membre connecté. */
+export type CarteIndicateur = {
+  id: string;
+  label: string;
+  value: string;
+  unit: string;
+  reference: string;
+  status: "nominal" | "attention" | "critique";
+  statusLabel: string;
+  points: number[];
+};
+
+const ETIQUETTE_STATUT: Record<string, string> = {
+  nominal: "Nominal",
+  attention: "À suivre",
+  critique: "Critique",
+};
+
+/** Les paramètres mis en avant sur le tableau de bord de l'équipage, dans l'ordre. */
+export const CARTES_TABLEAU: { id: string; parametre: string; libelle: string }[] = [
+  { id: "HR-01", parametre: "frequence_cardiaque", libelle: "FC au repos" },
+  { id: "BP-02", parametre: "pression_systolique", libelle: "Tension artérielle" },
+  { id: "OX-03", parametre: "SpO2", libelle: "Saturation en oxygène" },
+  { id: "TP-04", parametre: "temperature_corporelle", libelle: "Température corporelle" },
+  { id: "FR-05", parametre: "frequence_respiratoire", libelle: "Fréquence respiratoire" },
+  { id: "DC-06", parametre: "debit_cardiaque", libelle: "Débit cardiaque" },
+  { id: "BO-07", parametre: "t_score", libelle: "Densité osseuse · score T" },
+  { id: "MU-08", parametre: "force_main_droite", libelle: "Force de préhension" },
+  { id: "SL-09", parametre: "sommeil_duree", libelle: "Durée de sommeil" },
+];
+
+function versNombre(valeur: string | number): number {
+  const nombre = typeof valeur === "number" ? valeur : Number.parseFloat(String(valeur).replace(",", "."));
+  return Number.isFinite(nombre) ? nombre : Number.NaN;
+}
+
+/**
+ * Les cartes du tableau de bord de l'équipage, construites sur les mesures vivantes du membre
+ * connecté — la même source que celle que lit le poste au sol. C'est ce qui interdit aux deux
+ * interfaces d'afficher deux valeurs différentes pour une même mesure.
+ */
+export function cartesPourMembre(membre: MembreSimule | undefined): CarteIndicateur[] {
+  if (!membre) return [];
+  return CARTES_TABLEAU.flatMap(({ id, parametre, libelle }) => {
+    const mesure = membre.mesures[parametre];
+    if (!mesure) return [];
+    // la tension se lit en deux nombres, comme sur un brassard
+    const diastolique = parametre === "pression_systolique" ? membre.mesures.pression_diastolique : undefined;
+    const value = diastolique ? `${mesure.valeur}/${diastolique.valeur}` : String(mesure.valeur);
+    const points = (membre.historique[parametre] ?? []).map((point) => versNombre(point.valeur)).filter(Number.isFinite);
+    const statut = mesure.statut === "critique" || mesure.statut === "attention" ? mesure.statut : "nominal";
+    return [
+      {
+        id,
+        label: libelle.toUpperCase(),
+        value,
+        unit: mesure.unite,
+        reference: plageNominale(parametre),
+        status: statut,
+        statusLabel: ETIQUETTE_STATUT[statut] ?? statut,
+        points: points.slice(-14),
+      },
+    ];
+  });
+}
+
 /** Les trois membres de la station, avec leur propre physiologie. */
 export const EQUIPAGE_SIMULE: ProfilSimule[] = [
   {

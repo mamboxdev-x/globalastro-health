@@ -548,10 +548,9 @@ function BlocJournal({ membres, recues }: { membres: MembreSimule[]; recues: Mes
   // Deux sources : ce que le bord a réellement transmis (conservé dans la base du sol), sinon
   // les mesures vivantes de la simulation partagée.
   const depuisLaBase = (recues?.length ?? 0) > 0;
-  const lignes = depuisLaBase
+  const brut = depuisLaBase
     ? [...(recues as MesureSupabase[])]
         .sort((a, b) => rang(a.statut) - rang(b.statut) || b.date_utc.localeCompare(a.date_utc))
-        .slice(0, 18)
         .map((mesure) => ({
           cle: `${mesure.membre}-${mesure.parametre}-${mesure.date_utc}`,
           heure: mesure.date_utc.slice(11, 19),
@@ -568,7 +567,6 @@ function BlocJournal({ membres, recues }: { membres: MembreSimule[]; recues: Mes
           ),
         )
         .sort((a, b) => rang(a.mesure.statut) - rang(b.mesure.statut) || a.membre.nom.localeCompare(b.membre.nom))
-        .slice(0, 18)
         .map(({ parametre, mesure, membre }) => ({
           cle: `${membre.id}-${parametre}`,
           heure: mesure.date_utc.slice(11, 19),
@@ -578,6 +576,19 @@ function BlocJournal({ membres, recues }: { membres: MembreSimule[]; recues: Mes
           unite: mesure.unite,
           statut: mesure.statut,
         }));
+
+  // Une seule ligne par membre et par paramètre : sans cela le journal se remplit de la même
+  // mesure répétée à chaque fenêtre, et les paramètres les plus graves finissent par masquer
+  // tous les autres.
+  const vues = new Set<string>();
+  const lignes = brut
+    .filter((ligne) => {
+      const cle = `${ligne.qui}|${ligne.parametre}`;
+      if (vues.has(cle)) return false;
+      vues.add(cle);
+      return true;
+    })
+    .slice(0, 18);
 
   const ecarts = lignes.filter((ligne) => ligne.statut !== "nominal").length;
 
