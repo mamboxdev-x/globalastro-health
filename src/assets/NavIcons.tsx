@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type IconName = "dashboard" | "heart" | "mind" | "alert" | "offline" | "radiation";
+export type IconName = "dashboard" | "heart" | "mind" | "alert" | "offline" | "radiation" | "message";
 
 const iconPaths: Record<IconName, ReactNode> = {
   dashboard: (
@@ -40,6 +40,12 @@ const iconPaths: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="3.4" />
       <path d="M12 2.5v3.4M12 18.1v3.4M2.5 12h3.4M18.1 12h3.4M5.3 5.3l2.4 2.4M16.3 16.3l2.4 2.4M18.7 5.3l-2.4 2.4M7.7 16.3l-2.4 2.4" />
+    </>
+  ),
+  message: (
+    <>
+      <path d="M3.5 6.5h17v11h-17z" />
+      <path d="m3.5 7.2 8.5 6 8.5-6" />
     </>
   ),
 };

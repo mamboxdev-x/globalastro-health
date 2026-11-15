@@ -10,6 +10,7 @@ import MentalHealth from "@/views/MentalHealth";
 import AlertView from "@/views/AlertView";
 import OfflineSync from "@/views/OfflineSync";
 import Radiation from "@/views/Radiation";
+import Instructions from "@/views/Instructions";
 import GroundView from "@/views/GroundView";
 import { missionDay } from "@/data/missionData";
 
@@ -20,6 +21,7 @@ const moduleCode: Record<ScreenName, string> = {
   Rayonnement: "RAD-04",
   Alerte: "ALT-05",
   "Hors ligne": "COM-06",
+  Instructions: "MSG-07",
 };
 
 function ActiveScreen({ active }: { active: ScreenName }) {
@@ -29,6 +31,7 @@ function ActiveScreen({ active }: { active: ScreenName }) {
     case "Rayonnement": return <Radiation />;
     case "Alerte": return <AlertView />;
     case "Hors ligne": return <OfflineSync />;
+    case "Instructions": return <Instructions />;
     case "Tableau de bord": return <Dashboard />;
   }
 }

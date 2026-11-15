@@ -3,6 +3,7 @@ import RailCompte from "@/components/RailCompte";
 import { useBackend, useEquipageSol, useMessagesSolTous } from "@/context/BackendContext";
 import { useSession, type Compte } from "@/context/SessionContext";
 import { envoyerConsigneSol, formatDate } from "@/data/api";
+import { useConsignes } from "@/data/consignes";
 import { radiationData } from "@/data/radiationData";
 import {
   boneDensityData,
@@ -20,6 +21,7 @@ import {
 
 const EQUIPAGE = [
   {
+    identifiant: "cdr.mbaye",
     initiales: "MB",
     nom: "Cmdt Mbaye",
     resume: `Sommeil ${currentSleepDuration} · écart ${sleepDifferenceMinutes} min`,
@@ -27,6 +29,7 @@ const EQUIPAGE = [
     libelle: "À suivre",
   },
   {
+    identifiant: "ing.kouassi",
     initiales: "KP",
     nom: "Ing. Kouassi",
     resume: "Tous les indicateurs dans la référence pré-vol",
@@ -34,6 +37,7 @@ const EQUIPAGE = [
     libelle: "Nominal",
   },
   {
+    identifiant: "dr.aminata",
     initiales: "AS",
     nom: "Dr Aminata S.",
     resume: `Densité osseuse ${formatSignedPercent(boneDensityData.changePercent)} sur 90 jours`,
@@ -114,14 +118,6 @@ const JOURNAL = [
   { heure: "12:16:40", indicateur: "Densité minérale osseuse", valeur: formatSignedPercent(boneDensityData.changePercent), reference: `seuil ${formatSignedPercent(boneDensityData.alertThresholdPercent)}`, ecart: "seuil non atteint", etat: "warn" },
 ];
 
-type Consigne = {
-  id: string;
-  miseEnFile: string;
-  destinataire: string;
-  texte: string;
-  etat: "en attente" | "transmise";
-};
-
 /** Ligne affichée dans la file de transmission, quelle que soit sa source (API ou démonstration). */
 type LigneConsigne = {
   id: string;
@@ -145,23 +141,6 @@ type MembreBord = {
   alerts_24h: number;
   latest: Record<string, { value: number }>;
 };
-
-const CONSIGNES_INITIALES: Consigne[] = [
-  {
-    id: "c-086",
-    miseEnFile: "jour 86 · 12:44 UTC",
-    destinataire: "Dr Aminata S.",
-    texte: "Réévaluer la charge d’entraînement et transmettre le ressenti articulaire",
-    etat: "transmise",
-  },
-  {
-    id: "c-085",
-    miseEnFile: "jour 85 · 08:12 UTC",
-    destinataire: "Ing. Kouassi",
-    texte: "Relever la pression artérielle deux fois par jour pendant trois jours",
-    etat: "transmise",
-  },
-];
 
 const REFERENCE_MINUTES = 420;
 
@@ -629,13 +608,17 @@ export default function GroundView() {
   const [vue, setVue] = useState<VueSol>("equipage");
   const [consigneTexte, setConsigneTexte] = useState("Reporter l’exercice ARED et viser 8 h de sommeil sur 3 nuits");
   const [destinataire, setDestinataire] = useState("");
-  const [consignes, setConsignes] = useState<Consigne[]>(CONSIGNES_INITIALES);
+  // Les consignes vivent dans un magasin partagé : l’astronaute doit les retrouver de son
+  // côté après le changement de rôle, et son accusé de réception doit remonter ici.
+  const { liste: consignesPartagees, ajouter } = useConsignes();
   const [traitees, setTraitees] = useState<string[]>([]);
   const [version, setVersion] = useState(0);
 
+  // Un destinataire est un identifiant de connexion : c’est avec celui-ci que l’astronaute
+  // se connecte de son côté, et c’est donc celui-ci qui doit figurer sur la consigne.
   const destinataires = [
     ...equipeInscrite.map((membre) => membre.nom),
-    ...(equipage ? equipage.map((membre) => membre.id) : EQUIPAGE.map((membre) => membre.nom)),
+    ...(equipage ? equipage.map((membre) => membre.id) : EQUIPAGE.map((membre) => membre.identifiant)),
   ];
   const cible = destinataire || destinataires[0] || "";
 
@@ -660,12 +643,12 @@ export default function GroundView() {
       : [];
 
   const consignesAffichees: LigneConsigne[] = [
-    ...consignes.map((consigne) => ({
+    ...consignesPartagees.map((consigne) => ({
       id: consigne.id,
       miseEnFile: consigne.miseEnFile,
       destinataire: consigne.destinataire,
       texte: consigne.texte,
-      etat: consigne.etat === "transmise" ? ("transmise" as const) : ("attente" as const),
+      etat: consigne.etat,
     })),
     ...consignesDuBackend,
   ];
@@ -708,16 +691,7 @@ export default function GroundView() {
       }
     }
 
-    setConsignes((liste) => [
-      {
-        id: `c-${missionDay}-${liste.length + 1}`,
-        miseEnFile: `jour ${missionDay} · 12:52 UTC`,
-        destinataire: cible,
-        texte,
-        etat: "en attente",
-      },
-      ...liste,
-    ]);
+    ajouter(texte, cible, `jour ${missionDay} · 12:52 UTC`);
     setConsigneTexte("");
     setVue("consignes");
   };

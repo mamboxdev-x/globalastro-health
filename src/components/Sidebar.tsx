@@ -1,6 +1,7 @@
 import { NavIcon, type IconName } from "@/assets/NavIcons";
 import RailCompte from "@/components/RailCompte";
 import { useSession } from "@/context/SessionContext";
+import { useConsignes } from "@/data/consignes";
 import { missionDay } from "@/data/missionData";
 
 export type ScreenName =
@@ -9,7 +10,8 @@ export type ScreenName =
   | "Santé mentale"
   | "Rayonnement"
   | "Alerte"
-  | "Hors ligne";
+  | "Hors ligne"
+  | "Instructions";
 
 const navItems: { label: ScreenName; icon: IconName }[] = [
   { label: "Tableau de bord", icon: "dashboard" },
@@ -18,6 +20,7 @@ const navItems: { label: ScreenName; icon: IconName }[] = [
   { label: "Rayonnement", icon: "radiation" },
   { label: "Alerte", icon: "alert" },
   { label: "Hors ligne", icon: "offline" },
+  { label: "Instructions", icon: "message" },
 ];
 
 type SidebarProps = {
@@ -26,7 +29,11 @@ type SidebarProps = {
 };
 
 export default function Sidebar({ active, onNavigate }: SidebarProps) {
-  const { theme } = useSession();
+  const { theme, identifiant } = useSession();
+  const { liste } = useConsignes();
+  const instructionsALire = liste.filter(
+    (consigne) => consigne.destinataire === identifiant && consigne.etat !== "lue",
+  ).length;
 
   return (
     <aside className="u-rail" id="app-nav">
@@ -58,6 +65,11 @@ export default function Sidebar({ active, onNavigate }: SidebarProps) {
             {item.label === "Alerte" && (
               <span className="u-nav-count" aria-label="Une alerte en cours">
                 1
+              </span>
+            )}
+            {item.label === "Instructions" && instructionsALire > 0 && (
+              <span className="u-nav-count" aria-label={`${instructionsALire} instruction(s) à lire`}>
+                {instructionsALire}
               </span>
             )}
           </button>
