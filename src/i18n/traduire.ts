@@ -24,10 +24,20 @@ export function traduire(texte: string, langue: Langue): string {
   if (sansEspaces !== undefined) return texte.replace(cle, sansEspaces);
 
   for (const regle of REGLES_EN) {
-    if (regle.motif.test(cle)) {
-      const remplace = cle.replace(regle.motif, regle.remplacement);
-      if (remplace !== cle) return texte.replace(cle, remplace);
+    if (!regle.motif.test(cle)) continue;
+    let remplace: string;
+    if (typeof regle.remplacement === "string") {
+      remplace = cle.replace(regle.motif, regle.remplacement);
+    } else {
+      /* Une règle peut avoir besoin de traduire elle-même un morceau capturé (un libellé
+         d'indicateur, par exemple) : elle reçoit alors les groupes capturés, sans les deux
+         derniers arguments que String.replace ajoute toujours (position et chaîne d'origine). */
+      const fabrique = regle.remplacement;
+      remplace = cle.replace(regle.motif, (_correspondance, ...reste) =>
+        fabrique(...(reste.slice(0, Math.max(0, reste.length - 2)) as string[])),
+      );
     }
+    if (remplace !== cle) return texte.replace(cle, remplace);
   }
   return texte;
 }

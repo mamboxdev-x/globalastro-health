@@ -621,10 +621,21 @@ export const DICTIONNAIRE_EN: Record<string, string> = {
  * Règles pour les textes qui contiennent une valeur. Le remplacement suit la syntaxe de
  * String.replace : $1, $2 désignent les groupes capturés.
  */
-export const REGLES_EN: { motif: RegExp; remplacement: string }[] = [
+export const REGLES_EN: { motif: RegExp; remplacement: string | ((...groupes: string[]) => string) }[] = [
   { motif: /^Équipage · (\d+) membres?$/, remplacement: "Crew · $1 members" },
   { motif: /^Poste à bord · jour (\d+)$/, remplacement: "On board · day $1" },
   { motif: /^jour (\d+) · (\d+:\d+) UTC$/, remplacement: "day $1 · $2 UTC" },
+  /* les infobulles des courbes : le libellé qui suit le tiret se traduit lui aussi */
+  {
+    motif: /^Tendance sur (\d+) points? — (.+)$/,
+    remplacement: (nombre, libelle) => `Trend over ${nombre} points — ${DICTIONNAIRE_EN[libelle] ?? libelle}`,
+  },
+  /* le pied de panneau qui accompagne les mesures reçues à bord */
+  {
+    motif: /^Mêmes valeurs que celles affichées au poste sol pour (.+) : c’est la seule source, les deux écrans ne peuvent pas se contredire\.$/,
+    remplacement: (membre) =>
+      `Same values as those shown on the ground station for ${membre}: a single source, so the two screens cannot contradict each other.`,
+  },
   { motif: /^jour (\d+)$/, remplacement: "day $1" },
   { motif: /^J(\d+)$/, remplacement: "D$1" },
   { motif: /^(\d+) paramètres?$/, remplacement: "$1 parameters" },
