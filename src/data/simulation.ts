@@ -424,18 +424,29 @@ async function transmettreAuSol() {
   if (lot.length) await transmettreMesuresSupabase(lot);
 }
 
+/**
+ * Un pas, calé sur la frontière de seau suivante : deux pages ouvertes en même temps basculent au
+ * même instant et affichent donc exactement les mêmes valeurs. Un simple intervalle régulier dérive
+ * de quelques centaines de millisecondes entre deux onglets, ce qui suffit à faire diverger les deux
+ * interfaces d'un pas — et cela se voit immédiatement quand on les compare côte à côte.
+ */
+function programmerPas() {
+  const attente = CADENCE - (Date.now() % CADENCE) + 25;
+  minuteur = window.setTimeout(() => {
+    pasCourant += 1;
+    if (pasCourant % TOUS_LES_COMBINE === 0 && !moduleAbandonne) void interrogerModule();
+    if (SUPABASE_CONFIGURE && pasCourant % TOUS_LES_ENVOIS === 0) void transmettreAuSol();
+    pas();
+    programmerPas();
+  }, attente);
+}
+
 export function demarrerSimulation() {
   if (typeof window === "undefined" || minuteur !== null) return;
   // amorçage : les courbes ont déjà de l'allure quand l'écran s'ouvre
   for (let index = 40; index > 0; index -= 1) pas(index * CADENCE);
 
-  minuteur = window.setInterval(() => {
-    pasCourant += 1;
-    if (pasCourant % TOUS_LES_COMBINE === 0 && !moduleAbandonne) void interrogerModule();
-    if (SUPABASE_CONFIGURE && pasCourant % TOUS_LES_ENVOIS === 0) void transmettreAuSol();
-    pas();
-  }, CADENCE);
-
+  programmerPas();
   void interrogerModule();
 }
 
