@@ -9,6 +9,36 @@ Site en ligne : **https://www.globalastro.health**
 
 ---
 
+## Documents
+
+| Document | Contenu |
+|---|---|
+| [`docs/livrables/Cahier_des_charges_GlobalAstro_Health.pdf`](docs/livrables/Cahier_des_charges_GlobalAstro_Health.pdf) | Périmètre, exigences, architecture, grille de recette |
+| [`docs/livrables/Dossier_Projet_GlobalAstro_Health.pdf`](docs/livrables/Dossier_Projet_GlobalAstro_Health.pdf) | Le projet expliqué, avec les captures des deux interfaces |
+| [`docs/livrables/Reponses_Composantes_NASA.pdf`](docs/livrables/Reponses_Composantes_NASA.pdf) | Réponses au formulaire de soumission |
+| [`docs/livrables/Diaporama_GlobalAstro_Health.pdf`](docs/livrables/Diaporama_GlobalAstro_Health.pdf) | Diaporama de soumission, 7 diapositives |
+
+---
+
+## Emploi de l'intelligence artificielle
+
+Le règlement du défi demande de déclarer les outils d'intelligence artificielle employés, et
+d'indiquer où ils ont servi. Nous l'écrivons ici plutôt que de le laisser deviner.
+
+Un **agent de développement assisté par un grand modèle de langage** a été employé pour écrire et
+relire le code des deux interfaces, du module central et de la base du sol, pour rédiger la
+documentation du dépôt, pour écrire les scripts de vérification, et pour analyser les mesures afin
+de contrôler la cohérence entre les deux postes. Il a été utilisé comme un outil de développement,
+sous décision et relecture humaines.
+
+Ce qu'il n'a pas fait : **aucun élément de marque ou de design de la NASA n'a été généré ni utilisé**
+(logo, drapeau, identifiant de mission) ; aucune image de synthèse ne figure dans le produit ;
+l'identité visuelle a été créée par l'équipe. Les valeurs affichées sont simulées et l'interface
+l'indique : aucune donnée médicale réelle n'est traitée, donc aucune donnée personnelle n'a transité
+par un outil d'intelligence artificielle.
+
+---
+
 ## Le problème
 
 Sur une mission longue, les astronautes subissent cinq dangers documentés par le *Human Research Program* de la NASA : radiation spatiale, isolement et confinement, distance de la Terre, gravité altérée, environnement fermé hostile. Ces dangers entraînent des changements immunitaires, une perte de densité osseuse, des événements cardiovasculaires et des troubles du comportement.
