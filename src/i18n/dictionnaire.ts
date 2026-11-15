@@ -606,6 +606,8 @@ export const DICTIONNAIRE_EN: Record<string, string> = {
   "Ing. Kouassi": "Eng. Kouassi",
   "· capteurs du module": "· module sensors",
   "HRV · référence pré-vol": "HRV · pre-flight reference",
+  "La validation marque la séance comme faite dans l’interface ; elle ne provient pas d’un capteur.":
+    "Confirming marks the session as done in the interface; it does not come from a sensor.",
   "Le T-score absolu n’est pas mesuré à bord ; il ne peut pas être déduit de cette variation relative.":
     "The absolute T-score is not measured on board; it cannot be deduced from this relative change.",
   "Le rayonnement n’a pas de traitement à bord : la seule contre-mesure immédiate est l’abri, la seule contre-mesure longue est le suivi après la mission.":
@@ -635,11 +637,17 @@ export const REGLES_EN: { motif: RegExp; remplacement: string | ((...groupes: st
     motif: /^Tendance sur (\d+) points? — (.+)$/,
     remplacement: (nombre, libelle) => `Trend over ${nombre} points — ${DICTIONNAIRE_EN[libelle] ?? libelle}`,
   },
-  /* le pied de panneau qui accompagne les mesures reçues à bord */
+  /* le pied de panneau qui accompagne les mesures reçues à bord — ce sont des gabarits entiers,
+     avec le nom du membre au milieu */
   {
-    motif: /^Mêmes valeurs que celles affichées au poste sol pour (.+) : c’est la seule source, les deux écrans ne peuvent pas se contredire\.$/,
+    motif: /^Mêmes valeurs que celles affichées au poste sol pour (.+) : c'est la seule source, les deux écrans ne peuvent pas se contredire\. Simulation locale annoncée comme telle — lancez le module central \(receiver\.py \+ capteurs\.py\) pour voir passer de vraies remontées\.$/,
     remplacement: (membre) =>
-      `Same values as those shown on the ground station for ${membre}: a single source, so the two screens cannot contradict each other.`,
+      `Same values as those shown on the ground station for ${membre}: a single source, so the two screens cannot contradict each other. The local simulation says so — start the central module (receiver.py + capteurs.py) to see real readings come in.`,
+  },
+  {
+    motif: /^Mesures réellement reçues du module central \(receiver\.py\) pour (.+), seuils calculés par le module et conservés dans mesures\.csv\.$/,
+    remplacement: (membre) =>
+      `Measurements actually received from the central module (receiver.py) for ${membre}: thresholds computed by the module and kept in mesures.csv.`,
   },
   { motif: /^jour (\d+)$/, remplacement: "day $1" },
   { motif: /^J(\d+)$/, remplacement: "D$1" },
