@@ -107,13 +107,17 @@ export function appliquerTraduction(langue: Langue): () => void {
   parcourir(document.documentElement, langue);
 
   let planifie = false;
+  const passer = () => {
+    planifie = false;
+    parcourir(document.documentElement, langue);
+  };
   const observateur = new MutationObserver(() => {
     if (planifie) return;
     planifie = true;
-    window.requestAnimationFrame(() => {
-      planifie = false;
-      parcourir(document.documentElement, langue);
-    });
+    // Un délai nul plutôt qu'une image d'animation : dans un navigateur sans affichage (tests,
+    // captures, serveur d'intégration), les images d'animation peuvent n'être jamais demandées,
+    // et la traduction cesserait alors de suivre les redessins de l'application.
+    window.setTimeout(passer, 0);
   });
   observateur.observe(document.documentElement, {
     childList: true,
@@ -123,8 +127,15 @@ export function appliquerTraduction(langue: Langue): () => void {
     attributeFilter: ATTRIBUTS,
   });
 
+  /* Filet de sécurité : l'application se redessine en continu (les mesures défilent) et un
+     observateur peut manquer un changement — un noeud remplacé plutôt que modifié, par exemple.
+     Un passage régulier garantit que l'anglais reste en place ; le coût est négligeable (quelques
+     centaines de noeuds, et un noeud déjà traduit n'est pas réécrit). */
+  const filet = window.setInterval(() => parcourir(document.documentElement, langue), 600);
+
   return () => {
     observateur.disconnect();
+    window.clearInterval(filet);
     // retour au français : on remet à chaque noeud le texte d'origine
     parcourir(document.documentElement, "fr");
   };
