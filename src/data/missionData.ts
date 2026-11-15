@@ -59,7 +59,7 @@ export const dashboardMetrics: Metric[] = [
     unit: "bpm",
     reference: "61 bpm · référence pré-vol",
     status: "nominal",
-    statusLabel: "Nominal · démo",
+    statusLabel: "Nominal",
     points: [61, 60, 61, 60, 59, 60, 59, 58, 59, 58, 57, 58, 58, 58],
   },
   {
@@ -69,7 +69,7 @@ export const dashboardMetrics: Metric[] = [
     unit: "mmHg",
     reference: "120/80 mmHg · référence illustrative",
     status: "nominal",
-    statusLabel: "Nominal · démo",
+    statusLabel: "Nominal",
     points: [120, 119, 121, 118, 119, 117, 120, 118, 119, 118, 117, 118, 118, 118],
   },
   {
@@ -79,7 +79,7 @@ export const dashboardMetrics: Metric[] = [
     unit: "% / 90 j",
     reference: "−1,4 % par rapport au jour 0",
     status: "attention",
-    statusLabel: "À surveiller · démo",
+    statusLabel: "À surveiller",
     points: [...boneDensityData.points],
   },
   {
@@ -106,7 +106,7 @@ export const dashboardMetrics: Metric[] = [
     value: currentSleepDuration,
     reference: "7h00 · référence illustrative",
     status: "attention",
-    statusLabel: "À surveiller · démo",
+    statusLabel: "À surveiller",
     points: sleepData.days.map((entry) => entry.minutes),
   },
   {

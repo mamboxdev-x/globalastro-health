@@ -25,7 +25,7 @@ local (`VITE_HELIX_URL=http://<votre-ip>:8000`, voir `.env.example`).
 
 ### 1. La connexion — le rôle change tout (30 s)
 
-L'écran de connexion s'ouvre déjà rempli : **`cdr.mbaye` / `demo1234`**. Cliquer **Se connecter**.
+L'écran de connexion s'ouvre déjà rempli : **`cdr.mbaye` / `orbite2026`**. Cliquer **Se connecter**.
 
 > « L'application sert deux métiers. À bord, l'astronaute est seul avec ses capteurs. Au sol, le
 > médecin suit l'équipage — mais ne peut rien faire en direct : le signal met 12 minutes pour un
@@ -65,12 +65,12 @@ Sur **Rayonnement**, montrer la dose exprimée en **% de la limite de carrière*
 C'est la démonstration à ne pas rater : elle montre le délai et la boucle complète.
 
 1. **Se déconnecter** (bouton en bas du rail de navigation).
-2. Sur l'écran de connexion : identifiant **`dr.anderson`**, mot de passe **`demo1234`**, cocher **Médecin au sol**, puis **Se connecter**.
+2. Sur l'écran de connexion : identifiant **`dr.anderson`**, mot de passe **`orbite2026`**, cocher **Médecin au sol**, puis **Se connecter**.
 3. Sur **Équipage**, montrer les membres et leurs valeurs.
    > « Le médecin voit exactement ce que chaque membre voit à bord — c'est la même source. »
 4. Choisir le destinataire **`cdr.mbaye`**, écrire une consigne (le champ est pré-rempli), cliquer **Mettre en file**.
    > « Elle part « à la prochaine fenêtre » : je ne peux pas agir maintenant, et l'interface ne prétend pas le contraire. »
-5. **Se déconnecter**, se reconnecter en **astronaute** (`cdr.mbaye` / `demo1234`).
+5. **Se déconnecter**, se reconnecter en **astronaute** (`cdr.mbaye` / `orbite2026`).
 6. Ouvrir **Instructions** (dernière entrée du rail — une **pastille** indique le nombre à lire).
    > « Voilà la consigne, arrivée à la fenêtre de communication. »
 7. Cliquer **J'ai lu**.
@@ -102,7 +102,7 @@ C'est la démonstration à ne pas rater : elle montre le délai et la boucle com
 | La pastille dit **« Démonstration · backend non connecté »** | le module central ne tourne pas | relancer `demo\lancer_demo.bat` |
 | Le panneau affiche **`simulation`** au lieu de `capteurs du module` | même cause | idem — la démonstration reste valable, les valeurs sont simplement fabriquées dans le navigateur |
 | Le graphique ne bouge pas | la page est en veille | cliquer une fois dans la page, attendre 10 secondes |
-| **« Aucun compte sous cet identifiant »** | faute de frappe | les comptes sont `cdr.mbaye` et `dr.anderson`, mot de passe `demo1234` |
+| **« Aucun compte sous cet identifiant »** | faute de frappe | les comptes sont `cdr.mbaye` et `dr.anderson`, mot de passe `orbite2026` |
 | Rien ne s'affiche sur un second appareil | le module n'est pas joignable depuis cet appareil | démontrer sur un seul poste, ou renseigner `VITE_HELIX_URL` |
 
 ## Pour finir sur le site en ligne

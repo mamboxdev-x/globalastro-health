@@ -13,7 +13,7 @@ export default function LoginScreen() {
   const [mode, setMode] = useState<Mode>("connexion");
   const [role, setRole] = useState<Role>("astro");
   const [identifiant, setIdentifiant] = useState("cdr.mbaye");
-  const [motDePasse, setMotDePasse] = useState("demo1234");
+  const [motDePasse, setMotDePasse] = useState("orbite2026");
   const [voir, setVoir] = useState(false);
   const [erreur, setErreur] = useState("");
   const [succes, setSucces] = useState("");
@@ -255,7 +255,7 @@ export default function LoginScreen() {
 
           <p style={{ fontSize: 11, color: "var(--u-ink-3)", marginTop: 16, lineHeight: 1.5 }}>
             Comptes d’accès : <b>cdr.mbaye</b> (astronaute) et <b>dr.anderson</b> (médecin), mot de passe{" "}
-            <b>demo1234</b>.{" "}
+            <b>orbite2026</b>.{" "}
             {inscription && comptes.length > 0
               ? `Comptes connus : ${comptes.map((c) => `${c.identifiant} (${c.role === "astro" ? "astronaute" : "médecin"})`).join(", ")}. `
               : ""}

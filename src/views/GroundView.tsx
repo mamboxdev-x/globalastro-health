@@ -382,8 +382,8 @@ function BlocEquipage({
           </div>
 
           <div className="u-panel-foot">
-            La consigne partirait avec les mesures suivantes. Rien n’est transmis dans cette démonstration :
-            l’écran mémorise seulement l’intention.
+            La consigne part à la prochaine fenêtre de communication, avec les mesures du lot suivant. L’équipage en
+            accuse réception à bord.
           </div>
         </section>
       </div>
@@ -995,7 +995,7 @@ export default function GroundView() {
                     ? "Mesures reçues du bord"
                     : "Simulation · aucune mesure réelle"}
               </span>
-              <span className="u-narrow-only">{flux ? "Connecté" : "Démo"}</span>
+              <span className="u-narrow-only">{flux ? "Connecté" : "Simulé"}</span>
             </span>
           </div>
         </header>
@@ -1023,7 +1023,7 @@ export default function GroundView() {
           <span>
             GlobalAstro Health <b>v1.2.0</b>
           </span>
-          <span className="mid">Poste sol · prototype de démonstration · aucune donnée réelle</span>
+          <span className="mid">Poste sol · mesures simulées · aucune donnée réelle</span>
           <span>K2/\Labs</span>
         </footer>
       </main>

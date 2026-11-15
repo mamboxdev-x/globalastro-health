@@ -56,7 +56,7 @@ trap arreter EXIT
 echo "[3/3] Interface..."
 echo
 echo "  Ouvrez http://localhost:5173"
-echo "  Identifiants : cdr.mbaye (astronaute) ou dr.anderson (medecin), mot de passe demo1234"
+echo "  Identifiants : cdr.mbaye (astronaute) ou dr.anderson (medecin), mot de passe orbite2026"
 echo
 echo "  Ctrl+C pour tout arreter."
 echo

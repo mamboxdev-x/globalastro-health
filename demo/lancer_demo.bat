@@ -40,7 +40,7 @@ timeout /t 2 /nobreak >nul
 echo [3/3] Interface...
 echo.
 echo   Ouvrez http://localhost:5173 dans le navigateur.
-echo   Identifiants : cdr.mbaye (astronaute) ou dr.anderson (medecin), mot de passe demo1234
+echo   Identifiants : cdr.mbaye (astronaute) ou dr.anderson (medecin), mot de passe orbite2026
 echo.
 echo   Fermer les deux fenetres "module central" et "capteurs" pour arreter la demonstration.
 echo.

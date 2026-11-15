@@ -77,4 +77,4 @@ sources ouvertes visées (OSDR/GeneLab, DONKI, Curiosity RAD, NTRS). Détail et 
 
 `demo/lancer_demo.bat` (Windows) ou `./demo/lancer_demo.sh` : un seul geste démarre le module
 central, les capteurs et l'interface. Comptes : `cdr.mbaye` (astronaute) et `dr.anderson`
-(médecin), mot de passe `demo1234`. Déroulé minuté : `docs/SCENARIO_DEMO.md`.
+(médecin), mot de passe `orbite2026`. Déroulé minuté : `docs/SCENARIO_DEMO.md`.

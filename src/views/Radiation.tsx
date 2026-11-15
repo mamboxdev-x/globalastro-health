@@ -286,7 +286,7 @@ export default function Radiation() {
         )}
 
         <div className="u-panel-foot">
-          Valeurs chiffrées de démonstration. Cadre et repères issus des ressources officielles du défi : Agence
+          Valeurs chiffrées simulées. Cadre et repères issus des ressources officielles du défi : Agence
           spatiale canadienne et programme de recherche humaine de la NASA.
         </div>
       </section>

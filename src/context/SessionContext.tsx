@@ -58,7 +58,7 @@ const SessionContext = createContext<SessionContextValue | null>(null);
  * ne veut pas créer de compte : sans eux, un visiteur resterait dehors, puisque la connexion
  * refuse désormais tout identifiant inconnu.
  */
-export const MOT_DE_PASSE_DEMO = "demo1234";
+export const MOT_DE_PASSE_DEMO = "orbite2026";
 
 export const COMPTES_DEMO: Compte[] = [
   {

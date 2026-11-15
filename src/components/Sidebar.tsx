@@ -78,7 +78,7 @@ export default function Sidebar({ active, onNavigate }: SidebarProps) {
 
       <RailCompte
         statut={`Poste à bord · jour ${missionDay}`}
-        note="démonstration · aucune donnée réelle"
+        note="aucune donnée réelle · usage non médical"
       />
     </aside>
   );

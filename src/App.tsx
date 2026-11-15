@@ -129,9 +129,9 @@ function AppShell() {
             <span className={`u-chip ${mode === "live" ? "is-ok" : "is-warn"}`}>
               <span className={`u-dot is-${mode === "live" ? "ok" : "warn"}`} aria-hidden="true" />
               <span className="u-wide-only">
-                {mode === "live" ? "Système de bord connecté" : "Démonstration · backend non connecté"}
+                {mode === "live" ? "Système de bord connecté" : "Mesures simulées · backend non connecté"}
               </span>
-              <span className="u-narrow-only">{mode === "live" ? "Connecté" : "Démo"}</span>
+              <span className="u-narrow-only">{mode === "live" ? "Connecté" : "Simulé"}</span>
             </span>
             <div className="u-clock">
               <span>UTC</span>
@@ -149,7 +149,7 @@ function AppShell() {
             GlobalAstro Health <b>v1.2.0</b>
           </span>
           <span className="mid">
-            Prototype de démonstration · <b>aucun dispositif médical connecté</b> · aucune donnée réelle
+            Système d’aide à la décision · <b>aucun dispositif médical connecté</b> · aucune donnée réelle
           </span>
           <span>K2/\Labs</span>
         </footer>

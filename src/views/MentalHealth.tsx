@@ -157,7 +157,7 @@ function CardiacPanel() {
       </div>
 
       <div className="u-panel-foot">
-        Valeurs issues de la couche de démonstration, sans dispositif médical connecté.
+        Valeurs simulées, sans dispositif médical connecté.
       </div>
     </section>
   );
