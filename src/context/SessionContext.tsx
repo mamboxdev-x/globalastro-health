@@ -182,7 +182,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         ok: false,
         message: `Aucun compte sous cet identifiant (${
           role === "astro" ? "astronaute" : "médecin"
-        }). Créez-le, ou entrez en démonstration.`,
+        }). Créez-le, ou utilisez l’un des comptes d’accès.`,
       };
     },
     [comptes, ouvrir],
