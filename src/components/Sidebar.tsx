@@ -7,6 +7,7 @@ export type ScreenName =
   | "Tableau de bord"
   | "Os & Cœur"
   | "Santé mentale"
+  | "Rayonnement"
   | "Alerte"
   | "Hors ligne";
 
@@ -14,6 +15,7 @@ const navItems: { label: ScreenName; icon: IconName }[] = [
   { label: "Tableau de bord", icon: "dashboard" },
   { label: "Os & Cœur", icon: "heart" },
   { label: "Santé mentale", icon: "mind" },
+  { label: "Rayonnement", icon: "radiation" },
   { label: "Alerte", icon: "alert" },
   { label: "Hors ligne", icon: "offline" },
 ];

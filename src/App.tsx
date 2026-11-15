@@ -8,6 +8,7 @@ import BoneHeart from "@/views/BoneHeart";
 import MentalHealth from "@/views/MentalHealth";
 import AlertView from "@/views/AlertView";
 import OfflineSync from "@/views/OfflineSync";
+import Radiation from "@/views/Radiation";
 import GroundView from "@/views/GroundView";
 import { missionDay } from "@/data/missionData";
 
@@ -15,14 +16,16 @@ const moduleCode: Record<ScreenName, string> = {
   "Tableau de bord": "MED-01",
   "Os & Cœur": "PHY-02",
   "Santé mentale": "PSY-03",
-  Alerte: "ALT-04",
-  "Hors ligne": "COM-05",
+  Rayonnement: "RAD-04",
+  Alerte: "ALT-05",
+  "Hors ligne": "COM-06",
 };
 
 function ActiveScreen({ active }: { active: ScreenName }) {
   switch (active) {
     case "Os & Cœur": return <BoneHeart />;
     case "Santé mentale": return <MentalHealth />;
+    case "Rayonnement": return <Radiation />;
     case "Alerte": return <AlertView />;
     case "Hors ligne": return <OfflineSync />;
     case "Tableau de bord": return <Dashboard />;

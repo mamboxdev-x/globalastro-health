@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import RailCompte from "@/components/RailCompte";
 import { useSession } from "@/context/SessionContext";
+import { radiationData } from "@/data/radiationData";
 import {
   boneDensityData,
   cardiovascularData,
@@ -81,6 +82,7 @@ const JOURNAL = [
   { heure: "12:17:56", indicateur: "Variabilité cardiaque", valeur: `${cardiovascularData.hrvMs} ms`, reference: "55 ms", ecart: "−1 ms", etat: "ok" },
   { heure: "12:17:31", indicateur: "Pression systolique", valeur: "118/76", reference: "122/78", ecart: "−4 mmHg", etat: "ok" },
   { heure: "12:17:04", indicateur: "Débit cardiaque", valeur: `${currentCardiacOutput.toFixed(1).replace(".", ",")} L/min`, reference: "5,2 L/min", ecart: "−0,3", etat: "ok" },
+  { heure: "12:16:12", indicateur: "Rayonnement intégré", valeur: `${radiationData.doseIntegreeMsV} mSv`, reference: `${radiationData.pourcentageLimite} % de la limite`, ecart: "cumul de mission", etat: "ok" },
   { heure: "12:16:40", indicateur: "Densité minérale osseuse", valeur: formatSignedPercent(boneDensityData.changePercent), reference: `seuil ${formatSignedPercent(boneDensityData.alertThresholdPercent)}`, ecart: "seuil non atteint", etat: "warn" },
 ];
 
@@ -363,7 +365,7 @@ function BlocJournal() {
       <section className="u-panel" aria-labelledby="journal-titre">
         <div className="u-panel-head">
           <div>
-            <p className="u-panel-kicker">Fenêtre terminée · 6 mesures</p>
+            <p className="u-panel-kicker">Fenêtre terminée · {JOURNAL.length} mesures</p>
             <h2 className="u-panel-title" id="journal-titre">
               Dernières valeurs reçues
             </h2>
