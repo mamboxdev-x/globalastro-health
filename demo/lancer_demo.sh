@@ -31,8 +31,15 @@ PID_MODULE=$!
 
 sleep 3
 
-if ! curl -s --max-time 3 http://localhost:8000/sante >/dev/null 2>&1; then
-  echo "[i] Le module ne repond pas encore sur le port 8000 (journal : /tmp/globalastro-module.log)"
+if curl -s --max-time 3 http://127.0.0.1:8000/sante >/dev/null 2>&1; then
+  echo "      module central : en marche (port 8000)"
+else
+  echo "      [i] le module ne repond pas encore sur le port 8000 — journal : /tmp/globalastro-module.log"
+fi
+
+ADRESSE_RESEAU=$(hostname -I 2>/dev/null | awk '{print $1}')
+if [ -n "${ADRESSE_RESEAU:-}" ]; then
+  echo "      depuis un autre appareil du reseau : http://${ADRESSE_RESEAU}:8000"
 fi
 
 echo "[2/3] Capteurs simules..."

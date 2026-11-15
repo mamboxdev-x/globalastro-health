@@ -6,3 +6,6 @@ dist/
 Thumbs.db
 .env
 .env.*
+
+# Les bases du module central sont des données locales, pas du code.
+backend/simulation-capteurs/*.csv
