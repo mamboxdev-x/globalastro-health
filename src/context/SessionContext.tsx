@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import * as api from "@/data/api";
 
 /** Rôle de la personne connectée : à bord, ou au poste sol. */
 export type Role = "astro" | "sol";
@@ -33,14 +34,17 @@ type Session = {
   profil?: Profil;
 };
 
+type ResultatConnexion = { ok: boolean; message?: string; viaBase?: boolean };
+
 type SessionContextValue = Session & {
-  connecter: (role: Role, identifiant: string, motDePasse?: string) => { ok: boolean; message?: string };
+  connecter: (role: Role, identifiant: string, motDePasse?: string) => Promise<ResultatConnexion>;
+  entrerDemo: (role: Role) => void;
   deconnecter: () => void;
   basculeTheme: () => void;
   definirTheme: (theme: "clair" | "sombre") => void;
   theme: "clair" | "sombre";
   comptes: Compte[];
-  creerCompte: (compte: Omit<Compte, "creeLe">) => { ok: boolean; message?: string };
+  creerCompte: (compte: Omit<Compte, "creeLe">) => Promise<ResultatConnexion>;
 };
 
 const STORAGE_KEY = "globalastro-session-v1";
@@ -48,6 +52,31 @@ const THEME_KEY = "globalastro-theme-v1";
 const COMPTES_KEY = "globalastro-comptes-v1";
 const SessionContext = createContext<SessionContextValue | null>(null);
 
+/**
+ * Deux comptes de démonstration, toujours disponibles. Ils servent de porte d'entrée à qui
+ * ne veut pas créer de compte : sans eux, un visiteur resterait dehors, puisque la connexion
+ * refuse désormais tout identifiant inconnu.
+ */
+export const MOT_DE_PASSE_DEMO = "demo1234";
+
+export const COMPTES_DEMO: Compte[] = [
+  {
+    identifiant: "cdr.mbaye",
+    motDePasse: MOT_DE_PASSE_DEMO,
+    role: "astro",
+    profil: { poidsKg: 78, tailleM: 1.82, sexe: "H" },
+    creeLe: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    identifiant: "dr.anderson",
+    motDePasse: MOT_DE_PASSE_DEMO,
+    role: "sol",
+    profil: { service: "Centre de contrôle · Houston" },
+    creeLe: "2026-01-01T00:00:00.000Z",
+  },
+];
+
+/** Comptes réellement inscrits dans ce navigateur (hors comptes de démonstration). */
 function lireComptes(): Compte[] {
   if (typeof window === "undefined") return [];
   try {
@@ -58,6 +87,12 @@ function lireComptes(): Compte[] {
   } catch {
     return [];
   }
+}
+
+/** Comptes de démonstration puis comptes inscrits, sans doublon. */
+function tousLesComptes(inscrits: Compte[]): Compte[] {
+  const connus = new Set(COMPTES_DEMO.map((compte) => compte.identifiant.toLowerCase()));
+  return [...COMPTES_DEMO, ...inscrits.filter((compte) => !connus.has(compte.identifiant.toLowerCase()))];
 }
 
 function lireSession(): Session {
@@ -75,7 +110,7 @@ function lireSession(): Session {
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session>(lireSession);
-  const [comptes, setComptes] = useState<Compte[]>(lireComptes);
+  const [comptesInscrits, setComptesInscrits] = useState<Compte[]>(lireComptes);
   const [theme, setTheme] = useState<"clair" | "sombre">(() => {
     if (typeof window === "undefined") return "clair";
     return window.localStorage.getItem(THEME_KEY) === "sombre" ? "sombre" : "clair";
@@ -90,40 +125,77 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
-  const connecter = useCallback(
-    (role: Role, identifiantSaisi: string, motDePasse?: string) => {
-      const identifiant = identifiantSaisi.trim();
-      const compte = comptes.find((c) => c.identifiant.toLowerCase() === identifiant.toLowerCase());
+  const ouvrir = useCallback((compte: Compte) => {
+    const suivant: Session = { role: compte.role, identifiant: compte.identifiant, profil: compte.profil };
+    setSession(suivant);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(suivant));
+    } catch {
+      /* ignoré */
+    }
+  }, []);
 
-      if (compte) {
-        if (motDePasse !== undefined && motDePasse !== compte.motDePasse) {
+  const comptes = useMemo(() => tousLesComptes(comptesInscrits), [comptesInscrits]);
+
+  const connecter = useCallback(
+    async (role: Role, identifiantSaisi: string, motDePasse?: string): Promise<ResultatConnexion> => {
+      const identifiant = identifiantSaisi.trim();
+
+      const local = comptes.find((c) => c.identifiant.toLowerCase() === identifiant.toLowerCase());
+      if (local) {
+        if (motDePasse !== undefined && motDePasse !== local.motDePasse) {
           return { ok: false, message: "Mot de passe incorrect pour ce compte." };
         }
-        const suivant: Session = { role: compte.role, identifiant: compte.identifiant, profil: compte.profil };
-        setSession(suivant);
-        try {
-          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(suivant));
-        } catch {
-          /* ignoré */
-        }
+        ouvrir(local);
         return { ok: true };
       }
 
-      // aucun compte enregistré sous cet identifiant : session de démonstration
-      const suivant: Session = { role, identifiant };
-      setSession(suivant);
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(suivant));
-      } catch {
-        /* ignoré */
+      // Identifiant inconnu ici : on le demande à la base du module central, si elle tourne.
+      const reponse = await api.connexionModule(identifiant, motDePasse ?? "");
+      if (reponse?.ok && reponse.compte) {
+        const miroir: Compte = {
+          identifiant: reponse.compte.identifiant,
+          motDePasse: motDePasse ?? "",
+          role: reponse.compte.role,
+          profil: reponse.compte.profil as Profil | undefined,
+          creeLe: reponse.compte.cree_le ?? new Date().toISOString(),
+        };
+        setComptesInscrits((liste) => {
+          const suivante = [...liste, miroir];
+          try {
+            window.localStorage.setItem(COMPTES_KEY, JSON.stringify(suivante));
+          } catch {
+            /* ignoré */
+          }
+          return suivante;
+        });
+        ouvrir(miroir);
+        return { ok: true, viaBase: true };
       }
-      return { ok: true };
+      if (reponse && reponse.ok === false) {
+        return { ok: false, message: reponse.erreur ?? "Connexion refusée par la base." };
+      }
+
+      return {
+        ok: false,
+        message: `Aucun compte sous cet identifiant (${
+          role === "astro" ? "astronaute" : "médecin"
+        }). Créez-le, ou entrez en démonstration.`,
+      };
     },
-    [comptes],
+    [comptes, ouvrir],
+  );
+
+  const entrerDemo = useCallback(
+    (role: Role) => {
+      const compte = COMPTES_DEMO.find((c) => c.role === role) ?? COMPTES_DEMO[0];
+      ouvrir(compte);
+    },
+    [ouvrir],
   );
 
   const creerCompte = useCallback(
-    (compte: Omit<Compte, "creeLe">) => {
+    async (compte: Omit<Compte, "creeLe">): Promise<ResultatConnexion> => {
       const identifiant = compte.identifiant.trim();
       if (identifiant.length < 3) {
         return { ok: false, message: "Identifiant trop court : au moins 3 caractères." };
@@ -135,15 +207,36 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         return { ok: false, message: "Cet identifiant est déjà pris." };
       }
 
-      const nouveau: Compte = { ...compte, identifiant, creeLe: new Date().toISOString() };
-      const liste = [...comptes, nouveau];
-      setComptes(liste);
-      try {
-        window.localStorage.setItem(COMPTES_KEY, JSON.stringify(liste));
-      } catch {
-        /* ignoré */
+      // La base du module central fait référence : c'est elle qui refuse les doublons et qui
+      // garde l'empreinte du mot de passe.
+      const reponse = await api.inscrireCompteModule({
+        identifiant,
+        role: compte.role,
+        motDePasse: compte.motDePasse,
+        profil: compte.profil,
+      });
+      if (reponse && reponse.ok === false) {
+        return { ok: false, message: reponse.erreur ?? "Inscription refusée par la base." };
       }
-      return { ok: true };
+
+      const nouveau: Compte = { ...compte, identifiant, creeLe: new Date().toISOString() };
+      setComptesInscrits((liste) => {
+        const suivante = [...liste, nouveau];
+        try {
+          window.localStorage.setItem(COMPTES_KEY, JSON.stringify(suivante));
+        } catch {
+          /* ignoré */
+        }
+        return suivante;
+      });
+
+      return {
+        ok: true,
+        viaBase: Boolean(reponse?.ok),
+        message: reponse?.ok
+          ? "Inscription enregistrée dans la base du module central."
+          : "Compte créé dans ce navigateur. La base du module central ne répond pas : l’inscription n’y est pas enregistrée.",
+      };
     },
     [comptes],
   );
@@ -166,8 +259,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const valeur = useMemo<SessionContextValue>(
-    () => ({ ...session, connecter, deconnecter, basculeTheme, definirTheme, theme, comptes, creerCompte }),
-    [session, connecter, deconnecter, basculeTheme, definirTheme, theme, comptes, creerCompte],
+    () => ({ ...session, connecter, entrerDemo, deconnecter, basculeTheme, definirTheme, theme, comptes, creerCompte }),
+    [session, connecter, entrerDemo, deconnecter, basculeTheme, definirTheme, theme, comptes, creerCompte],
   );
 
   return <SessionContext.Provider value={valeur}>{children}</SessionContext.Provider>;

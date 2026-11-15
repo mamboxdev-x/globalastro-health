@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useBackend, useModuleDerniere, useModuleHistorique } from "@/context/BackendContext";
+import { useSimulationLocale } from "@/data/simulationLocale";
 import type { MesureModule } from "@/data/api";
 
 const LIBELLES: Record<string, string> = {
@@ -95,11 +96,18 @@ function Courbe({ points }: { points: MesureModule[] }) {
  */
 export default function ModuleCentral() {
   const { module } = useBackend();
-  const derniere = useModuleDerniere(module);
+  const reelle = useModuleDerniere(module);
   const [parametre, setParametre] = useState("frequence_cardiaque");
-  const historique = useModuleHistorique(module, parametre, 120);
+  const historiqueReel = useModuleHistorique(module, parametre, 120);
 
-  if (!module || !derniere) return null;
+  // Sans module central, l'écran ne doit pas rester figé : une simulation locale prend le
+  // relais, clairement annoncée comme telle. Avec le module, ce sont ses mesures qui passent.
+  const locale = useSimulationLocale(!module);
+  const enDirect = Boolean(module && reelle);
+  const derniere = enDirect ? reelle : Object.keys(locale.dernier).length > 0 ? locale.dernier : null;
+  const points = enDirect ? (historiqueReel?.points ?? []) : locale.pointsPour(parametre);
+
+  if (!derniere) return null;
 
   const mesures = Object.entries(derniere);
   const critiques = mesures.filter(([, m]) => m.statut === "critique").length;
@@ -110,12 +118,15 @@ export default function ModuleCentral() {
     <section className="u-panel" aria-labelledby="module-central">
       <div className="u-panel-head">
         <div>
-          <p className="u-panel-kicker">Module central · capteurs simulés</p>
+          <p className="u-panel-kicker">
+            {enDirect ? "Module central · mesures reçues" : "Simulation locale · aucune mesure réelle"}
+          </p>
           <h2 className="u-panel-title" id="module-central">
             Mesures reçues en direct
           </h2>
         </div>
         <div className="u-panel-right" style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {!enDirect && <span className="u-chip is-warn mono">simulation</span>}
           <span className="u-chip mono">{mesures.length} paramètres</span>
           {critiques > 0 && <span className="u-chip is-alert mono">{critiques} critique(s)</span>}
           {aSuivre > 0 && <span className="u-chip is-warn mono">{aSuivre} à suivre</span>}
@@ -159,7 +170,7 @@ export default function ModuleCentral() {
         </div>
 
         <div style={{ marginTop: 12 }}>
-          <Courbe points={historique?.points ?? []} />
+          <Courbe points={points} />
         </div>
       </div>
 
@@ -204,9 +215,9 @@ export default function ModuleCentral() {
       </div>
 
       <div className="u-panel-foot">
-        Valeurs produites par le module central HELIX (`receiver.py`) et ses capteurs simulés (`capteurs.py`), seuils
-        calculés par le module lui-même et conservés dans `mesures.csv`. Les courbes lisent l’historique par la route
-        <code> /historique</code>.
+        {enDirect
+          ? "Valeurs produites par le module central HELIX (receiver.py) et ses capteurs simulés (capteurs.py), seuils calculés par le module lui-même et conservés dans mesures.csv. Les courbes lisent l’historique par la route /historique."
+          : "Valeurs fabriquées dans le navigateur pour que l’écran reste vivant : aucun capteur n’est branché et aucune mesure réelle n’est affichée. Lancez le module central (receiver.py + capteurs.py) pour voir passer de vraies remontées."}
       </div>
     </section>
   );

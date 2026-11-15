@@ -189,6 +189,34 @@ export const moduleHistorique = (parametre: string, n = 120) =>
   );
 export const moduleParametres = () => appel<string[]>(ADRESSE_MODULE, "/parametres", {});
 
+/* --------------------------------------------------- comptes (module) ----- */
+
+export type CompteModule = {
+  identifiant: string;
+  role: "astro" | "sol";
+  profil?: Record<string, unknown>;
+  cree_le?: string;
+};
+
+type ReponseCompte = { ok: boolean; compte?: CompteModule; erreur?: string };
+
+/** Inscription dans la base du module central. Renvoie null si le module ne répond pas. */
+export const inscrireCompteModule = (compte: {
+  identifiant: string;
+  role: string;
+  motDePasse: string;
+  profil?: unknown;
+}) => appel<ReponseCompte>(ADRESSE_MODULE, "/astronautes", {}, { methode: "POST", corps: compte });
+
+/** Vérification d'un identifiant et d'un mot de passe auprès de la base. */
+export const connexionModule = (identifiant: string, motDePasse: string) =>
+  appel<ReponseCompte>(ADRESSE_MODULE, "/connexion", {}, {
+    methode: "POST",
+    corps: { identifiant, motDePasse },
+  });
+
+export const astronautesModule = () => appel<CompteModule[]>(ADRESSE_MODULE, "/astronautes", {});
+
 /* --------------------------------------------------------------- sonde ----- */
 
 export type EtatBackend = { bord: boolean; sol: boolean; module: boolean; mode: "live" | "demo" };
