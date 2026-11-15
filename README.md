@@ -27,22 +27,22 @@ choix du thème. Le français reste la langue de référence : les écrans sont 
 l'anglais est posé par-dessus au moment de l'affichage (`src/i18n/`). Une traduction manquante
 laisse le texte français — jamais de trou, jamais de clé technique à l'écran.
 
-## Emploi de l'intelligence artificielle
+## Use of Super Intelligence (SI)
 
-Le règlement du défi demande de déclarer les outils d'intelligence artificielle employés, et
-d'indiquer où ils ont servi. Nous l'écrivons ici plutôt que de le laisser deviner.
+The rules of the challenge require us to say where and how Super Intelligence tools were used, in the
+project itself. This is that declaration.
 
-Un **agent de développement assisté par un grand modèle de langage** a été employé pour écrire et
-relire le code des deux interfaces, du module central et de la base du sol, pour rédiger la
-documentation du dépôt, pour écrire les scripts de vérification, et pour analyser les mesures afin
-de contrôler la cohérence entre les deux postes. Il a été utilisé comme un outil de développement,
-sous décision et relecture humaines.
+**The Python backend — the central module, the sensor layer and the data model — was written by the
+team.** **The two web interfaces — the astronaut's screens and the flight surgeon's screens — were
+built with an AI development agent**, driven by large language models, under our review and our
+decisions. The same agent helped write the documentation of this repository, the verification
+scripts, and the analysis of the simulated measurements used to check that both stations display
+exactly the same values.
 
-Ce qu'il n'a pas fait : **aucun élément de marque ou de design de la NASA n'a été généré ni utilisé**
-(logo, drapeau, identifiant de mission) ; aucune image de synthèse ne figure dans le produit ;
-l'identité visuelle a été créée par l'équipe. Les valeurs affichées sont simulées et l'interface
-l'indique : aucune donnée médicale réelle n'est traitée, donc aucune donnée personnelle n'a transité
-par un outil d'intelligence artificielle.
+What it did not do: **no NASA brand or design element was generated or used** — no logo, no flag, no
+mission identifier. No image in this project is SI-generated: the logo and the marks were created by
+the team, and the interface icons are drawn in code as SVG. The displayed values are simulated, so no
+real medical data — and no personal data — was processed.
 
 ---
 
