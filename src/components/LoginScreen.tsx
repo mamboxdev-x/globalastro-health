@@ -9,7 +9,7 @@ const CHOIX: { role: Role; titre: string; texte: string }[] = [
 type Mode = "connexion" | "inscription";
 
 export default function LoginScreen() {
-  const { connecter, creerCompte, entrerDemo, comptes, theme } = useSession();
+  const { connecter, creerCompte, comptes, theme } = useSession();
   const [mode, setMode] = useState<Mode>("connexion");
   const [role, setRole] = useState<Role>("astro");
   const [identifiant, setIdentifiant] = useState("cdr.mbaye");
@@ -251,26 +251,10 @@ export default function LoginScreen() {
             >
               {inscription ? "J’ai déjà un compte" : "Créer un compte astronaute ou médecin"}
             </button>
-
-            {!inscription && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 7, marginTop: 4 }}>
-                <p className="u-label" style={{ margin: 0 }}>
-                  Pas de compte sous la main
-                </p>
-                <span style={{ display: "flex", gap: 7 }}>
-                  <button type="button" className="u-btn is-wide" onClick={() => entrerDemo("astro")}>
-                    Démonstration · astronaute
-                  </button>
-                  <button type="button" className="u-btn is-wide" onClick={() => entrerDemo("sol")}>
-                    Démonstration · médecin
-                  </button>
-                </span>
-              </div>
-            )}
           </div>
 
           <p style={{ fontSize: 11, color: "var(--u-ink-3)", marginTop: 16, lineHeight: 1.5 }}>
-            Comptes de démonstration : <b>cdr.mbaye</b> (astronaute) et <b>dr.anderson</b> (médecin), mot de passe{" "}
+            Comptes d’accès : <b>cdr.mbaye</b> (astronaute) et <b>dr.anderson</b> (médecin), mot de passe{" "}
             <b>demo1234</b>.{" "}
             {inscription && comptes.length > 0
               ? `Comptes connus : ${comptes.map((c) => `${c.identifiant} (${c.role === "astro" ? "astronaute" : "médecin"})`).join(", ")}. `
