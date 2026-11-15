@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import * as api from "@/data/api";
+import * as sol from "@/data/supabase";
 import type {
   AlerteBord,
   EtatBackend,
@@ -148,4 +149,15 @@ export function useModuleHistorique(actif: boolean, parametre: string, n = 120, 
     () => api.moduleHistorique(parametre, n),
     intervalle,
   );
+}
+
+/* ------------------------------------------------- comptes de la base sol -- */
+
+/**
+ * Les comptes inscrits dans la base du sol. C'est ce qui fait apparaître chez le médecin un
+ * astronaute inscrit depuis un autre appareil : sans ça, il ne verrait que les comptes de son
+ * propre navigateur.
+ */
+export function useComptesBaseSol(actif: boolean, intervalle = 15_000) {
+  return useRessource(actif, "comptes-base-sol", () => sol.comptesSupabase(), intervalle);
 }

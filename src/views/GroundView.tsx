@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import RailCompte from "@/components/RailCompte";
-import { useBackend, useEquipageSol, useMessagesSolTous } from "@/context/BackendContext";
-import { useSession, type Compte } from "@/context/SessionContext";
+import {
+  useBackend,
+  useComptesBaseSol,
+  useEquipageSol,
+  useMessagesSolTous,
+} from "@/context/BackendContext";
+import { useSession, type Compte, type Profil } from "@/context/SessionContext";
 import { envoyerConsigneSol, formatDate } from "@/data/api";
+import { SUPABASE_CONFIGURE } from "@/data/supabase";
 import { useConsignes } from "@/data/consignes";
 import {
   LIBELLES_PARAMETRES,
@@ -742,7 +748,23 @@ export default function GroundView() {
   const { membres } = useEquipageSimule();
   // les mesures viennent-elles du module central, ou de la simulation locale ?
   const flux = sol || membres.some((membre) => membre.source === "module");
-  const equipeInscrite = depuisComptes(comptes);
+  // les comptes de la base du sol : un astronaute inscrit ailleurs doit apparaître ici
+  const comptesBase = useComptesBaseSol(SUPABASE_CONFIGURE);
+  const tousLesInscrits = useMemo(() => {
+    const parIdentifiant = new Map<string, Compte>();
+    for (const compte of comptes) parIdentifiant.set(compte.identifiant.toLowerCase(), compte);
+    for (const compte of comptesBase ?? []) {
+      parIdentifiant.set(compte.identifiant.toLowerCase(), {
+        identifiant: compte.identifiant,
+        motDePasse: "",
+        role: compte.role,
+        profil: compte.profil as Profil | undefined,
+        creeLe: compte.cree_le ?? "",
+      });
+    }
+    return [...parIdentifiant.values()];
+  }, [comptes, comptesBase]);
+  const equipeInscrite = depuisComptes(tousLesInscrits);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [vue, setVue] = useState<VueSol>(lireVueSol);
   const [consigneTexte, setConsigneTexte] = useState("Reporter l’exercice ARED et viser 8 h de sommeil sur 3 nuits");

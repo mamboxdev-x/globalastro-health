@@ -8,20 +8,134 @@
  */
 
 const env = (import.meta as { env?: Record<string, string | undefined> }).env ?? {};
-const URL_BASE = env.VITE_SUPABASE_URL;
-const CLE_PUBLIQUE = env.VITE_SUPABASE_ANON_KEY;
 
-/** Vrai si le projet Supabase est renseigné dans l'environnement. */
+/**
+ * Projet de démonstration. Ces deux valeurs sont **publiques** : la clé `anon` est faite pour
+ * être livrée dans le navigateur, elle n'accorde que ce que les politiques RLS autorisent.
+ * La clé `service_role`, qui donne tous les droits, n'est jamais ici.
+ *
+ * Elles ne servent **que hors poste local** : la démonstration hors ligne (module central ou
+ * simulation) ne doit dépendre d'aucun réseau.
+ */
+const URL_DEFAUT = "https://udxaeoudqtsfscvbmznl.supabase.co";
+const CLE_DEFAUT =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkeGFlb3VkcXRzZnNjdmJtem5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2OTM2MTMsImV4cCI6MjExMDI2OTYxM30.wk55b1e7px7QCK2cHtAAXEDHhDQC0CK3R4feOntc0js";
+
+const hote = typeof window === "undefined" ? "" : window.location.hostname;
+const SUR_POSTE_LOCAL = hote === "localhost" || hote === "127.0.0.1" || hote === "";
+
+const URL_BASE = env.VITE_SUPABASE_URL ?? (SUR_POSTE_LOCAL ? undefined : URL_DEFAUT);
+const CLE_PUBLIQUE = env.VITE_SUPABASE_ANON_KEY ?? (SUR_POSTE_LOCAL ? undefined : CLE_DEFAUT);
+
+/** Vrai si la base du sol est utilisable depuis ici. */
 export const SUPABASE_CONFIGURE = Boolean(URL_BASE && CLE_PUBLIQUE);
+
+/** Adresse de la base du sol, pour l'afficher dans l'interface. */
+export const ADRESSE_SOL = URL_BASE ?? null;
 
 /** Même sel que le module central : les deux bases reconnaissent les mêmes empreintes. */
 const SEL = "helix-demo-2026";
 
-/** Empreinte du mot de passe (SHA-256 côté navigateur) : le mot de passe n'est jamais stocké. */
+/**
+ * SHA-256 en JavaScript pur.
+ *
+ * `crypto.subtle` n'existe que dans un contexte sécurisé : HTTPS, ou localhost. Une
+ * démonstration servie en HTTP sur une adresse réseau (le cas des deux appareils) ne
+ * l'a donc pas — et l'inscription plantait. D'où cette implémentation de secours.
+ */
+function sha256Hex(message: string): string {
+  const rotation = (valeur: number, bits: number) => (valeur >>> bits) | (valeur << (32 - bits));
+  const K = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+  ];
+
+  const octets = new TextEncoder().encode(message);
+  const total = (((octets.length + 8) >> 6) + 1) * 64;
+  const tampon = new Uint8Array(total);
+  tampon.set(octets);
+  tampon[octets.length] = 0x80;
+
+  const vue = new DataView(tampon.buffer);
+  const bits = octets.length * 8;
+  vue.setUint32(total - 8, Math.floor(bits / 2 ** 32), false);
+  vue.setUint32(total - 4, bits >>> 0, false);
+
+  let h0 = 0x6a09e667;
+  let h1 = 0xbb67ae85;
+  let h2 = 0x3c6ef372;
+  let h3 = 0xa54ff53a;
+  let h4 = 0x510e527f;
+  let h5 = 0x9b05688c;
+  let h6 = 0x1f83d9ab;
+  let h7 = 0x5be0cd19;
+  const w = new Uint32Array(64);
+
+  for (let bloc = 0; bloc < total; bloc += 64) {
+    for (let i = 0; i < 16; i += 1) w[i] = vue.getUint32(bloc + i * 4, false);
+    for (let i = 16; i < 64; i += 1) {
+      const s0 = rotation(w[i - 15], 7) ^ rotation(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+      const s1 = rotation(w[i - 2], 17) ^ rotation(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0;
+    }
+
+    let a = h0;
+    let b = h1;
+    let c = h2;
+    let d = h3;
+    let e = h4;
+    let f = h5;
+    let g = h6;
+    let h = h7;
+
+    for (let i = 0; i < 64; i += 1) {
+      const S1 = rotation(e, 6) ^ rotation(e, 11) ^ rotation(e, 25);
+      const choix = (e & f) ^ (~e & g);
+      const t1 = (h + S1 + choix + K[i] + w[i]) >>> 0;
+      const S0 = rotation(a, 2) ^ rotation(a, 13) ^ rotation(a, 22);
+      const majorite = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + majorite) >>> 0;
+      h = g;
+      g = f;
+      f = e;
+      e = (d + t1) >>> 0;
+      d = c;
+      c = b;
+      b = a;
+      a = (t1 + t2) >>> 0;
+    }
+
+    h0 = (h0 + a) >>> 0;
+    h1 = (h1 + b) >>> 0;
+    h2 = (h2 + c) >>> 0;
+    h3 = (h3 + d) >>> 0;
+    h4 = (h4 + e) >>> 0;
+    h5 = (h5 + f) >>> 0;
+    h6 = (h6 + g) >>> 0;
+    h7 = (h7 + h) >>> 0;
+  }
+
+  return [h0, h1, h2, h3, h4, h5, h6, h7].map((mot) => mot.toString(16).padStart(8, "0")).join("");
+}
+
+/** Empreinte du mot de passe : le mot de passe lui-même n'est jamais stocké. */
 export async function empreinte(identifiant: string, motDePasse: string): Promise<string> {
-  const donnees = new TextEncoder().encode(`${SEL}:${identifiant}:${motDePasse}`);
-  const digest = await crypto.subtle.digest("SHA-256", donnees);
-  return [...new Uint8Array(digest)].map((octet) => octet.toString(16).padStart(2, "0")).join("");
+  const donnees = `${SEL}:${identifiant}:${motDePasse}`;
+  if (typeof crypto !== "undefined" && crypto.subtle) {
+    try {
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(donnees));
+      return [...new Uint8Array(digest)].map((octet) => octet.toString(16).padStart(2, "0")).join("");
+    } catch {
+      /* contexte non sécurisé : on passe par l'implémentation locale */
+    }
+  }
+  return sha256Hex(donnees);
 }
 
 type Options = {
