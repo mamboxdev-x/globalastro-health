@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import RailCompte from "@/components/RailCompte";
 import { useBackend, useEquipageSol, useMessagesSol } from "@/context/BackendContext";
-import { useSession } from "@/context/SessionContext";
+import { useSession, type Compte } from "@/context/SessionContext";
 import { envoyerConsigneSol, formatDate } from "@/data/api";
 import { radiationData } from "@/data/radiationData";
 import {
@@ -41,6 +41,32 @@ const EQUIPAGE = [
     libelle: "À suivre",
   },
 ];
+
+/**
+ * Un astronaute inscrit dans ce navigateur doit apparaître chez le médecin :
+ * sinon le compte n'existe que pour la personne qui l'a créé.
+ */
+function depuisComptes(comptes: Compte[]) {
+  return comptes
+    .filter((compte) => compte.role === "astro")
+    .map((compte) => {
+      const profil = compte.profil;
+      const details = [
+        profil?.poidsKg ? `${profil.poidsKg} kg` : null,
+        profil?.tailleM ? `${profil.tailleM} m` : null,
+        profil?.sexe ?? null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      return {
+        initiales: compte.identifiant.replace(/[^a-zA-Z]/g, "").slice(0, 2).toUpperCase() || "??",
+        nom: compte.identifiant,
+        resume: details ? `Compte créé dans ce navigateur · ${details}` : "Compte créé dans ce navigateur",
+        libelle: "Nouveau",
+      };
+    });
+}
 
 type Alerte = {
   id: string;
@@ -149,6 +175,7 @@ function BlocEquipage({
   destinataires,
   mettreEnFile,
   equipage,
+  nouveaux,
 }: {
   consigneTexte: string;
   setConsigneTexte: (valeur: string) => void;
@@ -157,6 +184,7 @@ function BlocEquipage({
   destinataires: string[];
   mettreEnFile: () => void;
   equipage: MembreBord[] | null;
+  nouveaux: { initiales: string; nom: string; resume: string; libelle: string }[];
 }) {
   return (
     <>
@@ -190,6 +218,18 @@ function BlocEquipage({
 
           <div className="u-panel-body tight">
             <div className="u-rows">
+              {nouveaux.map((membre) => (
+                <div className="u-row" key={`compte-${membre.nom}`}>
+                  <span className="u-row-value is-muted" style={{ width: 26 }}>
+                    {membre.initiales}
+                  </span>
+                  <span className="u-row-k">
+                    <b>{membre.nom}</b>
+                    <small>{membre.resume}</small>
+                  </span>
+                  <span className="u-chip">{membre.libelle}</span>
+                </div>
+              ))}
               {equipage
                 ? equipage.map((membre) => (
                     <div className="u-row" key={membre.id}>
@@ -232,6 +272,12 @@ function BlocEquipage({
           </div>
 
           <div className="u-panel-foot">
+            {nouveaux.length > 0 && (
+              <>
+                Les lignes marquées « Nouveau » sont des astronautes inscrits dans ce navigateur : le registre des
+                comptes est lu directement, aucun capteur ne les alimente encore.{" "}
+              </>
+            )}
             {equipage
               ? "Valeurs lues sur le poste sol (API AstroPulse) : état calculé à partir des résumés synchronisés par la passerelle."
               : "Ces valeurs proviennent de la couche de démonstration et ne sont pas transmises par un capteur réel."}
@@ -575,9 +621,10 @@ const NAV: { id: VueSol; label: string }[] = [
 ];
 
 export default function GroundView() {
-  const { theme } = useSession();
+  const { theme, comptes } = useSession();
   const { sol } = useBackend();
   const equipage = useEquipageSol(sol);
+  const equipeInscrite = depuisComptes(comptes);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [vue, setVue] = useState<VueSol>("equipage");
   const [consigneTexte, setConsigneTexte] = useState("Reporter l’exercice ARED et viser 8 h de sommeil sur 3 nuits");
@@ -586,7 +633,10 @@ export default function GroundView() {
   const [traitees, setTraitees] = useState<string[]>([]);
   const [version, setVersion] = useState(0);
 
-  const destinataires = equipage ? equipage.map((membre) => membre.id) : EQUIPAGE.map((membre) => membre.nom);
+  const destinataires = [
+    ...equipeInscrite.map((membre) => membre.nom),
+    ...(equipage ? equipage.map((membre) => membre.id) : EQUIPAGE.map((membre) => membre.nom)),
+  ];
   const cible = destinataire || destinataires[0] || "";
   const messagesReels = useMessagesSol(sol, cible, version);
 
@@ -662,7 +712,7 @@ export default function GroundView() {
 
   const TITRES: Record<VueSol, { titre: string; sous: string }> = {
     equipage: {
-      titre: `Équipage · ${EQUIPAGE.length} membres`,
+      titre: `Équipage · ${(equipage ? equipage.length : EQUIPAGE.length) + equipeInscrite.length} membres`,
       sous: `Dernière remontée jour ${missionDay} · 12:18 UTC · prochaine fenêtre 12:52 UTC`,
     },
     alertes: {
@@ -764,6 +814,7 @@ export default function GroundView() {
               destinataires={destinataires}
               mettreEnFile={mettreEnFile}
               equipage={equipage}
+              nouveaux={equipeInscrite}
             />
           )}
           {vue === "alertes" && <BlocAlertes traitees={traitees} basculer={basculerAlerte} />}
