@@ -49,8 +49,8 @@ https://www.globalastro.health
 
 | Option | Ce qu'il faut faire | État |
 |---|---|---|
-| **Diaporama (recommandé)** | Déposer `Diaporama_GlobalAstro_Health.pdf` (7 diapositives) sur Google Drive ou GitHub, en accès public, et coller le lien | Prêt, à héberger |
-| Vidéo de 30 s | Enregistrer l'écran, sous-titres anglais obligatoires, déposer sur YouTube, lien public | À produire |
+| **Vidéo de 30 s** | Déposer `Video_GlobalAstro_Health.mp4` (28 s, sous-titres anglais incrustés) sur YouTube ou Google Drive, en accès public, et coller le lien. Le fichier `Video_GlobalAstro_Health.srt` permet aussi de fournir les sous-titres à part si la plateforme le propose | Prêt, à héberger |
+| Diaporama (7 diapositives) | Déposer `Diaporama_GlobalAstro_Health.pdf` sur Google Drive ou GitHub, en accès public, et coller le lien | Prêt, à héberger |
 
 **Trois vérifications à faire avant de coller un lien :**
 

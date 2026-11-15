@@ -1,0 +1,31 @@
+1
+00:00:00,201 --> 00:00:03,383
+GlobalAstro Health — crew health decision support
+
+2
+00:00:03,383 --> 00:00:07,536
+On board, the crew must spot a health drift alone: there is no doctor on board.
+
+3
+00:00:07,536 --> 00:00:11,254
+Radiation is read as a share of the career limit, never as an absolute dose.
+
+4
+00:00:11,254 --> 00:00:15,369
+On the ground, the surgeon sees the same values, at the same instant.
+
+5
+00:00:15,369 --> 00:00:19,429
+He prepares an instruction. It leaves at the next communication window.
+
+6
+00:00:19,429 --> 00:00:24,063
+On board, the crew receives it and acknowledges.
+
+7
+00:00:24,063 --> 00:00:27,329
+The acknowledgement travels back: the loop is closed.
+
+8
+00:00:27,329 --> 00:00:28,022
+globalastro.health
