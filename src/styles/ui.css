@@ -348,7 +348,7 @@ select.u-input { padding-right: 28px; }
 .u-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end; }
 .u-bar-value { font-family: var(--u-mono); font-size: 10.5px; color: var(--u-ink-2); }
 .u-bar-track { width: 100%; flex: 1; display: flex; align-items: flex-end; background: var(--u-inset); border-radius: 3px; min-height: 20px; }
-.u-bar-track > span { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--u-accent); }
+.u-bar-track > span { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--u-ink-3); }
 .u-bar-track > span.is-under { background: var(--u-warn); }
 .u-bar-day { font-size: 10.5px; color: var(--u-ink-3); letter-spacing: 0.04em; }
 

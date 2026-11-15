@@ -373,7 +373,13 @@ function BlocEquipage({
             </h2>
           </div>
           <div className="u-panel-right">
-            <span className="u-chip is-warn mono">3 nuits sous la référence</span>
+            <span
+              className={`u-chip mono ${
+                sleepData.days.filter((nuit) => nuit.minutes < REFERENCE_MINUTES).length ? "is-warn" : "is-ok"
+              }`}
+            >
+              {sleepData.days.filter((nuit) => nuit.minutes < REFERENCE_MINUTES).length} nuits sous la référence
+            </span>
           </div>
         </div>
 
@@ -734,6 +740,8 @@ export default function GroundView() {
   const { sol } = useBackend();
   const equipage = useEquipageSol(sol);
   const { membres } = useEquipageSimule();
+  // les mesures viennent-elles du module central, ou de la simulation locale ?
+  const flux = sol || membres.some((membre) => membre.source === "module");
   const equipeInscrite = depuisComptes(comptes);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [vue, setVue] = useState<VueSol>(lireVueSol);
@@ -923,12 +931,16 @@ export default function GroundView() {
             <div className="u-sub">{TITRES[vue].sous}</div>
           </div>
           <div className="u-top-actions">
-            <span className={`u-chip ${sol ? "is-ok" : "is-warn"}`}>
-              <span className={`u-dot is-${sol ? "ok" : "warn"}`} aria-hidden="true" />
+            <span className={`u-chip ${flux ? "is-ok" : "is-warn"}`}>
+              <span className={`u-dot is-${flux ? "ok" : "warn"}`} aria-hidden="true" />
               <span className="u-wide-only">
-                {sol ? "Poste sol connecté" : "Démonstration · backend non connecté"}
+                {sol
+                  ? "Poste sol connecté"
+                  : flux
+                    ? "Mesures reçues du bord"
+                    : "Simulation · aucune mesure réelle"}
               </span>
-              <span className="u-narrow-only">{sol ? "Connecté" : "Démo"}</span>
+              <span className="u-narrow-only">{flux ? "Connecté" : "Démo"}</span>
             </span>
           </div>
         </header>

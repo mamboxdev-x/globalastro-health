@@ -5,8 +5,6 @@
 
 NASA Space Apps Challenge 2026 — défi **« Create Health Monitoring Software for Astronauts on Space Missions »** — équipe **K2/\Labs**.
 
-Prototype **frontend** React + TypeScript. Le projet est volontairement limité au frontend : **aucune API, aucune base de données, aucune télémétrie réelle, aucune transmission vers un médecin**. Toutes les mesures, courbes, alertes et lignes de paquets sont des **données de démonstration**.
-
 Site en ligne : **https://www.globalastro.health**
 
 ---
@@ -17,21 +15,88 @@ Sur une mission longue, les astronautes subissent cinq dangers documentés par l
 
 Le point clé de l'énoncé : **« les astronautes portent eux-mêmes une grande partie de la responsabilité de repérer ces changements »**. Il n'y a pas de médecin à bord, et le signal met des dizaines de minutes à atteindre la Terre.
 
-## Ce que fait GlobalAstro Health
+## Deux interfaces, deux métiers
+
+L'application sert deux rôles, et l'interface change entièrement selon celui qui se connecte.
+
+### À bord — l'astronaute
 
 | Module | Rôle |
 |---|---|
-| **Tableau de bord** (MED-01) | Huit indicateurs consolidés : fréquence cardiaque au repos, tension, perte osseuse, densité minérale, acuité visuelle, sommeil, CO₂, exposition aux radiations — chacun comparé à sa **référence pré-vol** et suivi sur 14 jours. |
-| **Os & Cœur** (PHY-02) | Suivi sur 90 jours de la densité minérale osseuse et du système cardiovasculaire, avec **seuil critique tracé** (−2,0 %) et séances d'exercice préventif à valider. |
-| **Santé mentale** (PSY-03) | Journal de sommeil sur 7 jours (durée vs référence pré-vol), indicateurs PHQ-9 / GAD-7 / WHO-5, isolement et charge cognitive. |
-| **Alerte** (ALT-04) | Détection d'anomalie, **trois actions correctives prioritaires cochables**, et préparation d'un contact vers le chirurgien de vol — avec le **délai de transmission affiché (12 min aller-retour)**. |
-| **Hors ligne** (COM-05) | État de la liaison Terre–espace (LOS / AOS), stockage tampon local, journal des paquets en attente, synchronisation différée. |
+| **Tableau de bord** (MED-01) | Les indicateurs consolidés, la courbe du paramètre suivi, et les mesures reçues en direct. |
+| **Os & Cœur** (PHY-02) | Densité minérale osseuse, score T, système cardiovasculaire, seuil critique tracé. |
+| **Santé mentale** (PSY-03) | Sommeil sur 7 nuits, isolement, charge cognitive. |
+| **Rayonnement** (RAD-04) | Dose en **% de la limite de carrière** (jamais en mSv absolu : la limite NASA est définie en risque), part des neutrons, simulation d'éruption solaire. |
+| **Alerte** (ALT-05) | Détection d'anomalie, actions correctives prioritaires cochables, préparation d'un contact vers le chirurgien de vol. |
+| **Hors ligne** (COM-06) | État de la liaison, stockage tampon, file des paquets en attente, synchronisation différée. |
+| **Instructions** (MSG-07) | Les consignes préparées au sol, reçues à la fenêtre de communication, avec accusé de réception. |
+
+### Au sol — le médecin
+
+| Écran | Rôle |
+|---|---|
+| **Équipage** | Les membres suivis avec leurs valeurs reçues à l'instant, leur pire gravité, et la préparation d'une instruction. |
+| **Alertes reçues** | Les alertes **dérivées des mesures hors plage** (pas inventées), traitables une par une. |
+| **Journal des mesures** | Les dernières mesures de l'équipage, avec leur plage nominale et leur état. |
+| **Consignes envoyées** | Le cycle complet : à la prochaine fenêtre → livrée au bord → **lue par l'équipage**. |
+
+Le médecin **ne peut pas agir en direct** : une consigne écrite maintenant part au mieux à la fenêtre suivante, et le signal met 12 minutes pour un aller-retour. C'est ce délai qui structure toute l'interface du sol.
+
+## Captures
+
+Les captures sont dans **[docs/captures](docs/captures)** — régénérées à chaque évolution de l'interface.
+
+| Connexion — le rôle change tout | Tableau de bord · à bord |
+|---|---|
+| ![Connexion](docs/captures/connexion.png) | ![Tableau de bord](docs/captures/astro_1_tableau_de_bord.png) |
+
+**À bord**
+
+| Os & Cœur | Santé mentale | Rayonnement |
+|---|---|---|
+| ![Os et Coeur](docs/captures/astro_2_os_coeur.png) | ![Sante mentale](docs/captures/astro_3_sante_mentale.png) | ![Rayonnement](docs/captures/astro_4_rayonnement.png) |
+
+| Alerte | Hors ligne | Instructions reçues |
+|---|---|---|
+| ![Alerte](docs/captures/astro_5_alerte.png) | ![Hors ligne](docs/captures/astro_6_hors_ligne.png) | ![Instructions](docs/captures/astro_7_instructions.png) |
+
+**Au sol**
+
+| Équipage | Alertes reçues |
+|---|---|
+| ![Equipage](docs/captures/sol_1_equipage.png) | ![Alertes](docs/captures/sol_2_alertes.png) |
+
+| Journal des mesures | Consignes envoyées |
+|---|---|
+| ![Journal](docs/captures/sol_3_journal.png) | ![Consignes](docs/captures/sol_4_consignes.png) |
 
 ## Le principe : décider, pas afficher
 
 Un tableau de bord qui affiche des courbes ne répond pas au défi. La question posée par la NASA est : *« quand un résultat justifie-t-il l'attention de l'équipage ou des chirurgiens de vol au sol ? »*
 
-GlobalAstro Health est construit autour de cette question : chaque indicateur est comparé à une référence, chaque dépassement produit une **action corrective**, et l'escalade vers le sol tient compte du délai réel de communication.
+GlobalAstro Health est construit autour de cette question : chaque indicateur est comparé à une référence et à des seuils, chaque dépassement produit une **action corrective**, et l'escalade vers le sol tient compte du délai réel de communication.
+
+## Architecture
+
+```
+        À BORD (aucun réseau requis)                      AU SOL
+ ┌────────────────────────────────────┐        ┌────────────────────────────┐
+ │  15 capteurs simulés               │        │  Base Supabase (PostgreSQL)│
+ │  MAX30102 · MAX30205 · MH-Z19      │        │  comptes                   │
+ │  MPU6050 · DEXA · Jamar · Omron    │        │  consignes                 │
+ │  GSR · Dosimètre · Bracelet …      │        │  mesures reçues            │
+ │              ↓                     │        └────────────────────────────┘
+ │  Module central (Python)           │                      ↑
+ │  mesures.csv · seuils · statuts    │──────────────────────┘
+ │  consignes.csv · astronautes.csv   │   fenêtre de communication
+ └────────────────────────────────────┘
+        ↑                        ↑
+  interface astronaute     interface médecin
+```
+
+- **À bord : le module central Python** (`backend/simulation-capteurs/`) reçoit les mesures des capteurs simulés, calcule leur statut selon ses propres seuils et garde tout dans des fichiers locaux. **Rien ne dépend du réseau** — c'est le cœur du sujet.
+- **Au sol : Supabase** (PostgreSQL hébergé) garde les comptes, les consignes et les mesures reçues. Le site étant statique, l'API REST de Supabase tient lieu de serveur.
+- **Sans base joignable**, une simulation partagée prend le relais dans le navigateur : elle alimente les deux interfaces avec **les mêmes valeurs**, et elle est annoncée comme telle à l'écran.
 
 ## Ce qui tourne, ce qui est simulé
 
@@ -39,29 +104,20 @@ Séparation stricte, à ne jamais brouiller devant un jury :
 
 | Élément | État réel |
 |---|---|
-| Les 5 écrans, la navigation, le build | **Fonctionne** (captures dans `docs/`) |
-| Comparaison aux références pré-vol, seuils, actions correctives | **Fonctionne** (règles codées) |
-| Persistance locale des validations de démonstration | **Fonctionne** (`localStorage`, voir plus bas) |
-| Les valeurs affichées | **Simulées** — aucune donnée médicale réelle n'est publique. Source unique : `src/data/missionData.ts`. |
-| Appels aux services NASA (OSDR, DONKI, Curiosity RAD) | **Non branchés** |
-| Backend, transmission réelle vers un médecin, capteurs, chiffrement de paquets | **Non implémentés** — représentés dans l'interface |
+| Les deux interfaces, la navigation, le build | **Fonctionne** |
+| Inscription astronaute / médecin, connexion stricte | **Fonctionne** (base du sol, puis module central, puis stockage local) |
+| Consignes du sol vers le bord, accusé de réception | **Fonctionne** (Supabase ou module central ; stockage local en repli) |
+| Comparaison aux seuils, alertes dérivées, actions correctives | **Fonctionne** (règles codées, mêmes seuils des deux côtés) |
+| Les 15 capteurs simulés et leurs 25 paramètres | **Fonctionnent** (module central, `mesures.csv`) |
+| Les valeurs affichées | **Simulées** — aucune donnée médicale réelle n'est publique |
+| Transmission Terre–espace réelle, chiffrement des paquets | **Non implémentés** — représentés dans l'interface |
 
-**Choix assumé :** les indicateurs non renseignés affichent `NON RENSEIGNÉ` plutôt qu'une valeur inventée (densité osseuse, acuité visuelle, CO₂). L'outil refuse de fabriquer un chiffre, et une bannière le rappelle en permanence à l'écran.
-
-## Captures
-
-| Tableau de bord | Os & Cœur |
-|---|---|
-| ![Tableau de bord](docs/ecran_1.png) | ![Os et Coeur](docs/ecran_2.png) |
-
-| Santé mentale | Alerte | Hors ligne |
-|---|---|---|
-| ![Sante mentale](docs/ecran_3.png) | ![Alerte](docs/ecran_4.png) | ![Hors ligne](docs/ecran_5.png) |
+**Choix assumé :** les valeurs physiques sont fabriquées — par les capteurs simulés à bord, par la simulation partagée au sol. L'écran dit toujours d'où vient le chiffre affiché (`capteurs du module` ou `simulation`), et les paramètres non renseignés affichent `NON RENSEIGNÉ` plutôt qu'une valeur inventée.
 
 ## Prérequis
 
 - Node.js 22 minimum (compatible Vite 8)
-- npm
+- Python 3.10+ pour le module central (facultatif : le frontend fonctionne seul)
 
 ## Installation et lancement
 
@@ -89,30 +145,47 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 Le dossier `.figma/` est requis par `vite.config.ts` — **ne pas le supprimer**.
 
-## Organisation
+## Lancer la démonstration complète
 
-- `src/App.tsx` : navigation, en-tête, horloge UTC et bannière de démonstration.
-- `src/views/` : les cinq modules de l'interface.
-- `src/components/` : composants partagés pour les indicateurs et alertes.
-- `src/data/missionData.ts` : source unique des données de démonstration et des calculs dérivés.
-- `src/context/DemoStateContext.tsx` : état partagé entre les écrans et persistance locale des validations.
-- `src/index.css` : feuille de style (thèmes clair et sombre).
+Pour la démonstration devant le jury, voir **[docs/SCENARIO_DEMO.md](docs/SCENARIO_DEMO.md)** pour le déroulé pas à pas.
 
-## Persistance locale
+```bash
+# démonstration locale complète : capteurs + module central + interface
+./demo/lancer_demo.sh          # Linux / macOS
+demo\lancer_demo.bat           # Windows
+```
 
-Les validations d'exercices, les cases cochées et les demandes simulées sont conservées dans
-`localStorage` sous la clé `globalastro-demo-state-v1` lorsque le navigateur l'autorise.
-Ce n'est ni un stockage médical ni une synchronisation réseau : rien n'est envoyé nulle part.
-Pour repartir de zéro, effacer les données du site dans le navigateur (ou supprimer cette clé).
+Le script démarre le module central, lance les capteurs, et affiche l'adresse à ouvrir — ainsi que l'adresse réseau à saisir sur un second appareil si besoin.
 
-## Limites connues et périmètre
+## Brancher la base du sol (Supabase)
 
-- Les mesures sont **fictives** et ne doivent pas servir à une décision médicale.
-- Les boutons de contact et de synchronisation **ne transmettent rien** : ils mémorisent un état de démonstration.
-- Les graphes affichent des séries locales d'exemple.
-- Aucun capteur, backend, service NASA, chiffrement de paquets ou stockage métier n'est connecté.
+Facultatif : sans configuration, l'application fonctionne entièrement en local.
 
-## Sources de données NASA visées
+1. Créer un projet sur [supabase.com](https://supabase.com) (offre gratuite).
+2. **SQL Editor** → coller le contenu de [`supabase/schema.sql`](supabase/schema.sql) → *Run*.
+3. **Settings → API** → relever l'**URL du projet** et la clé **`anon` `public`**.
+4. Les déclarer dans un fichier `.env` (voir [`.env.example`](.env.example)) ou dans les variables d'environnement de l'hébergeur :
+
+```
+VITE_SUPABASE_URL=https://xxxxxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGci…
+```
+
+> La clé `anon` est **publique** : elle finit dans le JavaScript du site. La clé `service_role` donne tous les droits — **ne jamais la publier**.
+
+## Organisation du dépôt
+
+- `src/App.tsx` : rôle, navigation, en-tête, écran courant mémorisé.
+- `src/views/` : les écrans — à bord (7) et au sol (4).
+- `src/components/` : composants partagés (indicateurs, alertes, compte, inscription).
+- `src/context/` : session (comptes, thème), backend (sondes), état de démonstration.
+- `src/data/` : `missionData.ts` (séries), `simulation.ts` (simulation partagée), `consignes.ts` (file de consignes), `api.ts` (module central), `supabase.ts` (base du sol).
+- `supabase/schema.sql` : le schéma de la base du sol.
+- `backend/simulation-capteurs/` : le module central Python et les capteurs simulés.
+- `demo/` : scripts de lancement de la démonstration.
+- `docs/` : scénario de démonstration, sources NASA, captures.
+
+## Sources de données NASA
 
 L'onglet *Resources* officiel du défi ne fournit aucun jeu de données. Les sources ci-dessous sont ouvertes, sans compte :
 
@@ -123,6 +196,15 @@ L'onglet *Resources* officiel du défi ne fournit aucun jeu de données. Les sou
 | **Curiosity RAD** (NASA PDS) | dose de radiation mesurée à la surface de Mars depuis 2012 |
 | **NTRS** (`ntrs.nasa.gov/api/citations/search`) | rapports techniques — source des seuils cités |
 | **HRP — 5 Hazards / Risks** | cadre des dangers humains en vol spatial |
+
+Détail des liens et des risques cités : **[docs/SOURCES_NASA.md](docs/SOURCES_NASA.md)**.
+
+## Limites connues et périmètre
+
+- Les mesures sont **fictives** et ne doivent servir à aucune décision médicale.
+- La base du sol est ouverte en lecture et écriture à la clé publique : c'est un choix de prototype, pas un modèle de sécurité.
+- L'empreinte des mots de passe utilise un sel fixe de démonstration.
+- Aucun capteur réel, aucun chiffrement de paquets, aucun service NASA n'est connecté.
 
 ## Équipe
 
