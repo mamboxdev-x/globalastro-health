@@ -1,36 +1,7 @@
 import { useState } from "react";
-import { useBackend, useModuleDerniere, useModuleHistorique } from "@/context/BackendContext";
-import { useSimulationLocale } from "@/data/simulationLocale";
+import { useSession } from "@/context/SessionContext";
+import { LIBELLES_PARAMETRES as LIBELLES, membrePour, useEquipageSimule } from "@/data/simulation";
 import type { MesureModule } from "@/data/api";
-
-const LIBELLES: Record<string, string> = {
-  frequence_cardiaque: "Fréquence cardiaque",
-  frequence_respiratoire: "Fréquence respiratoire",
-  temperature_corporelle: "Température corporelle",
-  SpO2: "Saturation en oxygène",
-  co2: "CO₂ de cabine",
-  dose_radiation: "Dose de radiation",
-  debit_cardiaque: "Débit cardiaque",
-  pression_systolique: "Pression systolique",
-  pression_diastolique: "Pression diastolique",
-  t_score: "Score T (DEXA)",
-  densite_osseuse_bmd: "Densité minérale osseuse",
-  perte_osseuse_totale: "Perte osseuse depuis 2023",
-  force_main_droite: "Force de préhension · droite",
-  force_main_gauche: "Force de préhension · gauche",
-  masse_maigre: "Masse maigre",
-  masse_grasse: "Masse grasse",
-  sommeil_duree: "Durée de sommeil",
-  sommeil_efficacite: "Efficacité du sommeil",
-  sommeil_profond: "Sommeil profond",
-  sommeil_REM: "Sommeil paradoxal",
-  calcium: "Calcium",
-  vitamine_D: "Vitamine D",
-  CRP: "Protéine C-réactive",
-  poids: "Poids",
-  impedance: "Impédance",
-  activite_electrodermale: "Activité électrodermale",
-};
 
 /** Paramètres qui bougent en continu : ce sont eux qu'on trace. */
 const TRACABLES = [
@@ -95,19 +66,17 @@ function Courbe({ points }: { points: MesureModule[] }) {
  * seuils calculés côté module, courbes alimentées par l'historique CSV.
  */
 export default function ModuleCentral() {
-  const { module } = useBackend();
-  const reelle = useModuleDerniere(module);
+  const { identifiant } = useSession();
+  const { membres } = useEquipageSimule();
   const [parametre, setParametre] = useState("frequence_cardiaque");
-  const historiqueReel = useModuleHistorique(module, parametre, 120);
 
-  // Sans module central, l'écran ne doit pas rester figé : une simulation locale prend le
-  // relais, clairement annoncée comme telle. Avec le module, ce sont ses mesures qui passent.
-  const locale = useSimulationLocale(!module);
-  const enDirect = Boolean(module && reelle);
-  const derniere = enDirect ? reelle : Object.keys(locale.dernier).length > 0 ? locale.dernier : null;
-  const points = enDirect ? (historiqueReel?.points ?? []) : locale.pointsPour(parametre);
+  // La même source que le poste sol : ce que le médecin lit chez ce membre est ce qui s'affiche ici.
+  const membre = membrePour(membres, identifiant);
+  const derniere = membre?.mesures ?? null;
+  const points = membre?.historique[parametre] ?? [];
+  const enDirect = membre?.source === "module";
 
-  if (!derniere) return null;
+  if (!derniere || !membre) return null;
 
   const mesures = Object.entries(derniere);
   const critiques = mesures.filter(([, m]) => m.statut === "critique").length;
@@ -119,7 +88,9 @@ export default function ModuleCentral() {
       <div className="u-panel-head">
         <div>
           <p className="u-panel-kicker">
-            {enDirect ? "Module central · mesures reçues" : "Simulation locale · aucune mesure réelle"}
+            {enDirect
+              ? `Capteurs du module central · ${membre.nom}`
+              : `Simulation partagée · ${membre.nom}`}
           </p>
           <h2 className="u-panel-title" id="module-central">
             Mesures reçues en direct
@@ -216,8 +187,8 @@ export default function ModuleCentral() {
 
       <div className="u-panel-foot">
         {enDirect
-          ? "Valeurs produites par le module central HELIX (receiver.py) et ses capteurs simulés (capteurs.py), seuils calculés par le module lui-même et conservés dans mesures.csv. Les courbes lisent l’historique par la route /historique."
-          : "Valeurs fabriquées dans le navigateur pour que l’écran reste vivant : aucun capteur n’est branché et aucune mesure réelle n’est affichée. Lancez le module central (receiver.py + capteurs.py) pour voir passer de vraies remontées."}
+          ? `Mesures réellement reçues du module central (receiver.py) pour ${membre.nom}, seuils calculés par le module et conservés dans mesures.csv.`
+          : `Mêmes valeurs que celles affichées au poste sol pour ${membre.nom} : c'est la seule source, les deux écrans ne peuvent pas se contredire. Simulation locale annoncée comme telle — lancez le module central (receiver.py + capteurs.py) pour voir passer de vraies remontées.`}
       </div>
     </section>
   );

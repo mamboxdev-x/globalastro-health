@@ -4,6 +4,14 @@ import { useBackend, useEquipageSol, useMessagesSolTous } from "@/context/Backen
 import { useSession, type Compte } from "@/context/SessionContext";
 import { envoyerConsigneSol, formatDate } from "@/data/api";
 import { useConsignes } from "@/data/consignes";
+import {
+  LIBELLES_PARAMETRES,
+  gravite,
+  horsPlage,
+  plageNominale,
+  useEquipageSimule,
+  type MembreSimule,
+} from "@/data/simulation";
 import { radiationData } from "@/data/radiationData";
 import {
   boneDensityData,
@@ -155,6 +163,7 @@ function BlocEquipage({
   mettreEnFile,
   equipage,
   nouveaux,
+  membres,
 }: {
   consigneTexte: string;
   setConsigneTexte: (valeur: string) => void;
@@ -164,6 +173,7 @@ function BlocEquipage({
   mettreEnFile: () => void;
   equipage: MembreBord[] | null;
   nouveaux: { initiales: string; nom: string; resume: string; libelle: string }[];
+  membres: MembreSimule[];
 }) {
   return (
     <>
@@ -209,44 +219,78 @@ function BlocEquipage({
                   <span className="u-chip">{membre.libelle}</span>
                 </div>
               ))}
-              {equipage
-                ? equipage.map((membre) => (
-                    <div className="u-row" key={membre.id}>
-                      <span className="u-row-k">
-                        <b>{membre.id}</b>
-                        <small>
-                          vu il y a {Math.round(membre.minutes_since)} min · {membre.alerts_24h} alerte(s) sur 24 h
-                          {membre.latest.heart_rate ? ` · ${Math.round(membre.latest.heart_rate.value)} bpm` : ""}
-                          {membre.latest.spo2 ? ` · ${membre.latest.spo2.value.toFixed(1)} %` : ""}
-                          {membre.latest.temperature ? ` · ${membre.latest.temperature.value.toFixed(1)} °C` : ""}
-                        </small>
-                      </span>
-                      <span className={`u-chip ${
+              {/* Les mêmes mesures que celles du tableau de bord de chaque membre : une seule source. */}
+              {membres.map((membre) => {
+                const { critiques, aSuivre } = horsPlage(membre.mesures);
+                const niveau = gravite(membre.mesures);
+                const fc = membre.mesures.frequence_cardiaque;
+                const spo2 = membre.mesures.SpO2;
+                const temperature = membre.mesures.temperature_corporelle;
+                const sommeil = membre.mesures.sommeil_duree;
+                return (
+                  <div className="u-row" key={`sim-${membre.id}`}>
+                    <span className="u-row-value is-muted" style={{ width: 26 }}>
+                      {membre.initiales}
+                    </span>
+                    <span className="u-row-k">
+                      <b>{membre.nom}</b>
+                      <small>
+                        {membre.fonction} · {fc ? `${fc.valeur} bpm` : "—"} · {spo2 ? `${spo2.valeur} %` : "—"} ·{" "}
+                        {temperature ? `${temperature.valeur} °C` : "—"}
+                        {sommeil ? ` · sommeil ${sommeil.valeur} h` : ""} ·{" "}
+                        {critiques.length + aSuivre.length} paramètre(s) hors plage
+                        {membre.source === "module" ? " · capteurs du module" : " · simulation"}
+                      </small>
+                    </span>
+                    <span
+                      className={`u-chip ${
+                        niveau === "critique" ? "is-alert" : niveau === "attention" ? "is-warn" : "is-ok"
+                      }`}
+                    >
+                      <span
+                        className={`u-dot ${
+                          niveau === "critique" ? "is-alert" : niveau === "attention" ? "is-warn" : "is-ok"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      {niveau === "critique" ? "Critique" : niveau === "attention" ? "À suivre" : "Nominal"}
+                    </span>
+                  </div>
+                );
+              })}
+              {equipage &&
+                equipage.map((membre) => (
+                  <div className="u-row" key={membre.id}>
+                    <span className="u-row-k">
+                      <b>{membre.id}</b>
+                      <small>
+                        vu il y a {Math.round(membre.minutes_since)} min · {membre.alerts_24h} alerte(s) sur 24 h
+                        {membre.latest.heart_rate ? ` · ${Math.round(membre.latest.heart_rate.value)} bpm` : ""}
+                        {membre.latest.spo2 ? ` · ${membre.latest.spo2.value.toFixed(1)} %` : ""}
+                        {membre.latest.temperature ? ` · ${membre.latest.temperature.value.toFixed(1)} °C` : ""}
+                      </small>
+                    </span>
+                    <span
+                      className={`u-chip ${
                         membre.status === "critical" ? "is-alert" : membre.status === "ok" ? "is-ok" : "is-warn"
-                      }`}>
-                        <span
-                          className={`u-dot ${
-                            membre.status === "critical" ? "is-alert" : membre.status === "ok" ? "is-ok" : "is-warn"
-                          }`}
-                          aria-hidden="true"
-                        />
-                        {membre.status === "silent" ? "Silencieux" : membre.status === "ok" ? "Nominal" : membre.status === "critical" ? "Critique" : "À suivre"}
-                      </span>
-                    </div>
-                  ))
-                : EQUIPAGE.map((membre) => (
-                    <div className="u-row" key={membre.initiales}>
-                      <span className="u-row-value is-muted" style={{ width: 26 }}>{membre.initiales}</span>
-                      <span className="u-row-k">
-                        <b>{membre.nom}</b>
-                        <small>{membre.resume}</small>
-                      </span>
-                      <span className={`u-chip ${membre.etat === "ok" ? "is-ok" : "is-warn"}`}>
-                        <span className={`u-dot is-${membre.etat}`} aria-hidden="true" />
-                        {membre.libelle}
-                      </span>
-                    </div>
-                  ))}
+                      }`}
+                    >
+                      <span
+                        className={`u-dot ${
+                          membre.status === "critical" ? "is-alert" : membre.status === "ok" ? "is-ok" : "is-warn"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      {membre.status === "silent"
+                        ? "Silencieux"
+                        : membre.status === "ok"
+                          ? "Nominal"
+                          : membre.status === "critical"
+                            ? "Critique"
+                            : "À suivre"}
+                    </span>
+                  </div>
+                ))}
             </div>
           </div>
 
@@ -259,7 +303,7 @@ function BlocEquipage({
             )}
             {equipage
               ? "Valeurs lues sur le poste sol (API AstroPulse) : état calculé à partir des résumés synchronisés par la passerelle."
-              : "Ces valeurs proviennent de la couche de démonstration et ne sont pas transmises par un capteur réel."}
+              : "Valeurs reçues à l’instant, identiques à celles du tableau de bord de chaque membre : une seule source alimente les deux interfaces."}
           </div>
         </section>
 
@@ -356,8 +400,30 @@ function BlocEquipage({
   );
 }
 
-function BlocAlertes({ traitees, basculer }: { traitees: string[]; basculer: (id: string) => void }) {
-  const restantes = ALERTES.length - traitees.length;
+function BlocAlertes({
+  traitees,
+  basculer,
+  membres,
+}: {
+  traitees: string[];
+  basculer: (id: string) => void;
+  membres: MembreSimule[];
+}) {
+  // Les alertes ne sont pas inventées : elles sortent des mesures reçues dès qu'un paramètre
+  // quitte sa plage nominale. Même source que le tableau de bord du membre concerné.
+  const alertes = membres.flatMap((membre) =>
+    Object.entries(membre.mesures)
+      .filter(([, mesure]) => mesure.statut === "critique" || mesure.statut === "attention")
+      .map(([parametre, mesure]) => ({
+        id: `${membre.id}-${parametre}`,
+        niveau: mesure.statut === "critique" ? ("Niveau 2" as const) : ("Niveau 1" as const),
+        code: `${membre.initiales}-${parametre.slice(0, 8).toUpperCase()}`,
+        titre: `${LIBELLES_PARAMETRES[parametre] ?? parametre} · ${mesure.valeur} ${mesure.unite}`,
+        origine: membre.nom,
+        recue: `jour ${missionDay} · ${mesure.date_utc.slice(11, 16)} UTC`,
+      })),
+  );
+  const restantes = alertes.filter((alerte) => !traitees.includes(alerte.id)).length;
 
   return (
     <>
@@ -378,17 +444,26 @@ function BlocAlertes({ traitees, basculer }: { traitees: string[]; basculer: (id
           <div>
             <p className="u-panel-kicker">Depuis le début de la mission</p>
             <h2 className="u-panel-title" id="alertes-recues">
-              {ALERTES.length} alertes reçues
+              {alertes.length} alertes issues des mesures
             </h2>
           </div>
           <div className="u-panel-right">
-            <span className="u-chip mono">{traitees.length} / {ALERTES.length} traitées</span>
+            <span className="u-chip mono">{traitees.length} / {alertes.length} traitées</span>
           </div>
         </div>
 
         <div className="u-panel-body tight">
           <div className="u-rows">
-            {ALERTES.map((alerte) => {
+            {alertes.length === 0 && (
+              <div className="u-row">
+                <span className="u-chip is-ok">à jour</span>
+                <span className="u-row-k">
+                  <b>Aucun paramètre hors plage</b>
+                  <small>Toutes les mesures reçues sont dans leur plage nominale.</small>
+                </span>
+              </div>
+            )}
+            {alertes.map((alerte) => {
               const estTraitee = traitees.includes(alerte.id);
               return (
                 <div className="u-row" key={alerte.id}>
@@ -433,7 +508,35 @@ function BlocAlertes({ traitees, basculer }: { traitees: string[]; basculer: (id
   );
 }
 
-function BlocJournal() {
+function BlocJournal({ membres }: { membres: MembreSimule[] }) {
+  const SUIVIS = [
+    "frequence_cardiaque",
+    "SpO2",
+    "temperature_corporelle",
+    "frequence_respiratoire",
+    "pression_systolique",
+    "pression_diastolique",
+    "debit_cardiaque",
+    "dose_radiation",
+    "t_score",
+    "force_main_droite",
+    "CRP",
+    "sommeil_duree",
+    "co2",
+  ];
+  const rang = (statut: string) => (statut === "critique" ? 0 : statut === "attention" ? 1 : 2);
+
+  const lignes = membres
+    .flatMap((membre) =>
+      SUIVIS.map((parametre) => ({ parametre, mesure: membre.mesures[parametre], membre })).filter(
+        (entree) => Boolean(entree.mesure),
+      ),
+    )
+    .sort((a, b) => rang(a.mesure.statut) - rang(b.mesure.statut) || a.membre.nom.localeCompare(b.membre.nom))
+    .slice(0, 18);
+
+  const ecarts = lignes.filter((ligne) => ligne.mesure.statut !== "nominal").length;
+
   return (
     <>
       <div className="u-shead">
@@ -449,13 +552,15 @@ function BlocJournal() {
       <section className="u-panel" aria-labelledby="journal-titre">
         <div className="u-panel-head">
           <div>
-            <p className="u-panel-kicker">Fenêtre terminée · {JOURNAL.length} mesures</p>
+            <p className="u-panel-kicker">Dernière fenêtre · {lignes.length} mesures affichées</p>
             <h2 className="u-panel-title" id="journal-titre">
               Dernières valeurs reçues
             </h2>
           </div>
           <div className="u-panel-right">
-            <span className="u-chip is-warn mono">2 en écart</span>
+            <span className={`u-chip ${ecarts ? "is-warn" : "is-ok"} mono`}>
+              {ecarts ? `${ecarts} en écart` : "toutes dans la plage"}
+            </span>
           </div>
         </div>
 
@@ -473,16 +578,24 @@ function BlocJournal() {
               </tr>
             </thead>
             <tbody>
-              {JOURNAL.map((ligne) => (
-                <tr key={ligne.heure}>
-                  <td>{ligne.heure}</td>
-                  <td>{ligne.indicateur}</td>
-                  <td className="is-num">{ligne.valeur}</td>
-                  <td className="is-num">{ligne.reference}</td>
-                  <td>{ligne.ecart}</td>
+              {lignes.map(({ parametre, mesure, membre }) => (
+                <tr key={`${membre.id}-${parametre}`}>
+                  <td>{mesure.date_utc.slice(11, 19)}</td>
                   <td>
-                    <span className={`u-chip ${ligne.etat === "ok" ? "is-ok" : "is-warn"}`}>
-                      {ligne.etat === "ok" ? "Dans la référence" : "À suivre"}
+                    {membre.nom} · {LIBELLES_PARAMETRES[parametre] ?? parametre}
+                  </td>
+                  <td className="is-num">
+                    {mesure.valeur} {mesure.unite}
+                  </td>
+                  <td className="is-num">{plageNominale(parametre)}</td>
+                  <td>{mesure.statut === "nominal" ? "dans la plage" : "hors plage"}</td>
+                  <td>
+                    <span
+                      className={`u-chip ${
+                        mesure.statut === "critique" ? "is-alert" : mesure.statut === "attention" ? "is-warn" : "is-ok"
+                      }`}
+                    >
+                      {mesure.statut === "critique" ? "Critique" : mesure.statut === "attention" ? "À suivre" : "Nominal"}
                     </span>
                   </td>
                 </tr>
@@ -493,26 +606,26 @@ function BlocJournal() {
 
         <div className="u-stats">
           <div className="u-stat">
-            <span className="u-stat-k">Mesures reçues</span>
-            <span className="u-stat-v">{JOURNAL.length}</span>
+            <span className="u-stat-k">Mesures affichées</span>
+            <span className="u-stat-v">{lignes.length}</span>
           </div>
           <div className="u-stat">
-            <span className="u-stat-k">Dans la référence</span>
-            <span className="u-stat-v">{JOURNAL.filter((l) => l.etat === "ok").length}</span>
+            <span className="u-stat-k">Dans la plage</span>
+            <span className="u-stat-v">{lignes.length - ecarts}</span>
           </div>
           <div className="u-stat">
-            <span className="u-stat-k">À suivre</span>
-            <span className="u-stat-v">{JOURNAL.filter((l) => l.etat !== "ok").length}</span>
+            <span className="u-stat-k">Hors plage</span>
+            <span className="u-stat-v">{ecarts}</span>
           </div>
           <div className="u-stat">
-            <span className="u-stat-k">Prochaine fenêtre</span>
-            <span className="u-stat-v">12:52</span>
+            <span className="u-stat-k">Membres suivis</span>
+            <span className="u-stat-v">{membres.length}</span>
           </div>
         </div>
 
         <div className="u-panel-foot">
-          Entre deux fenêtres, les mesures restent à bord dans le tampon local : le journal du poste sol ne se
-          remplit qu’à la réception.
+          Mêmes valeurs que celles affichées sur le tableau de bord des membres : une seule source alimente les deux
+          interfaces, elles ne peuvent pas se contredire.
         </div>
       </section>
     </>
@@ -603,6 +716,7 @@ export default function GroundView() {
   const { theme, comptes } = useSession();
   const { sol } = useBackend();
   const equipage = useEquipageSol(sol);
+  const { membres } = useEquipageSimule();
   const equipeInscrite = depuisComptes(comptes);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [vue, setVue] = useState<VueSol>("equipage");
@@ -805,10 +919,11 @@ export default function GroundView() {
               mettreEnFile={mettreEnFile}
               equipage={equipage}
               nouveaux={equipeInscrite}
+              membres={membres}
             />
           )}
-          {vue === "alertes" && <BlocAlertes traitees={traitees} basculer={basculerAlerte} />}
-          {vue === "journal" && <BlocJournal />}
+          {vue === "alertes" && <BlocAlertes traitees={traitees} basculer={basculerAlerte} membres={membres} />}
+          {vue === "journal" && <BlocJournal membres={membres} />}
           {vue === "consignes" && <BlocConsignes consignes={consignesAffichees} reel={sol} />}
         </div>
 
