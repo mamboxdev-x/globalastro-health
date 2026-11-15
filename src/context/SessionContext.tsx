@@ -151,7 +151,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       }
 
       // Identifiant inconnu ici : on le demande à la base du module central, si elle tourne.
-      const reponse = await api.connexionModule(identifiant, motDePasse ?? "");
+      // Sur le site en ligne, aucune base n'existe : on ne tente même pas la requête, pour ne
+      // pas laisser d'erreur réseau dans la console du navigateur.
+      const reponse = api.SONDE_ACTIVE ? await api.connexionModule(identifiant, motDePasse ?? "") : null;
       if (reponse?.ok && reponse.compte) {
         const miroir: Compte = {
           identifiant: reponse.compte.identifiant,
@@ -208,13 +210,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       }
 
       // La base du module central fait référence : c'est elle qui refuse les doublons et qui
-      // garde l'empreinte du mot de passe.
-      const reponse = await api.inscrireCompteModule({
-        identifiant,
-        role: compte.role,
-        motDePasse: compte.motDePasse,
-        profil: compte.profil,
-      });
+      // garde l'empreinte du mot de passe. Inutile de l'appeler si aucun backend n'est joignable.
+      const reponse = api.SONDE_ACTIVE
+        ? await api.inscrireCompteModule({
+            identifiant,
+            role: compte.role,
+            motDePasse: compte.motDePasse,
+            profil: compte.profil,
+          })
+        : null;
       if (reponse && reponse.ok === false) {
         return { ok: false, message: reponse.erreur ?? "Inscription refusée par la base." };
       }
