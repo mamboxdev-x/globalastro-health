@@ -1,5 +1,8 @@
+import { useState } from "react";
 import AlertBox from "@/components/AlertBox";
 import { useDemoState } from "@/context/DemoStateContext";
+import { useAlertesBord, useBackend } from "@/context/BackendContext";
+import { acquitterAlerteBord, formatDate, LIBELLE_CAPTEUR, LIBELLE_GRAVITE } from "@/data/api";
 
 const alertActions = [
   { id: "light", title: "Examiner le protocole de récupération lumineuse", detail: "À valider avec le médecin au sol" },
@@ -9,6 +12,14 @@ const alertActions = [
 
 export default function AlertView() {
   const { checkedAlertActions, toggleAlertAction, contactRequestPrepared, prepareContactRequest } = useDemoState();
+  const { bord } = useBackend();
+  const alertes = useAlertesBord(bord);
+  const [prises, setPrises] = useState<number[]>([]);
+
+  const prendreEnCompte = async (id: number) => {
+    setPrises((liste) => (liste.includes(id) ? liste : [...liste, id]));
+    await acquitterAlerteBord(id);
+  };
 
   return (
     <>
@@ -23,6 +34,63 @@ export default function AlertView() {
       </div>
 
       <AlertBox />
+
+      {bord && (
+        <section className="u-panel" aria-labelledby="alertes-moteur">
+          <div className="u-panel-head">
+            <div>
+              <p className="u-panel-kicker">Détection à bord · lignes de base personnelles</p>
+              <h2 className="u-panel-title" id="alertes-moteur">
+                Alertes du système de bord
+              </h2>
+            </div>
+            <div className="u-panel-right">
+              <span className="u-chip mono">{alertes ? alertes.length : 0} alerte(s)</span>
+            </div>
+          </div>
+
+          <div className="u-panel-body tight">
+            <div className="u-rows">
+              {(alertes ?? []).map((alerte) => {
+                const traitee = alerte.acknowledged === 1 || prises.includes(alerte.id);
+                return (
+                  <div className="u-row" key={alerte.id}>
+                    <span className={`u-chip ${alerte.severity === "critical" ? "is-alert" : "is-warn"}`}>
+                      {LIBELLE_GRAVITE[alerte.severity]}
+                    </span>
+                    <span className="u-row-k">
+                      <b>{alerte.message}</b>
+                      <small>
+                        {LIBELLE_CAPTEUR[alerte.sensor ?? ""] ?? "système"} · {formatDate(alerte.ts)} · détection « {alerte.kind} »
+                      </small>
+                    </span>
+                    <button
+                      type="button"
+                      className={`u-btn ${traitee ? "is-done" : ""}`}
+                      aria-pressed={traitee}
+                      onClick={() => prendreEnCompte(alerte.id)}
+                    >
+                      {traitee ? "Pris en compte" : "Prendre en compte"}
+                    </button>
+                  </div>
+                );
+              })}
+              {alertes && alertes.length === 0 && (
+                <div className="u-row">
+                  <span className="u-row-k">
+                    <small>Aucune alerte enregistrée à bord pour l’instant.</small>
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="u-panel-foot">
+            Alertes produites par la passerelle de bord : pic par z-score sur ligne de base personnelle, dérive lente
+            sur 24 h, seuils critiques par capteur. Les messages sont ceux du moteur, en anglais.
+          </div>
+        </section>
+      )}
 
       <section className="u-panel" aria-labelledby="priority-title">
         <div className="u-panel-head">

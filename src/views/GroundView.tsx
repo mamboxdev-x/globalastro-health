@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import RailCompte from "@/components/RailCompte";
+import { useBackend, useEquipageSol, useMessagesSol } from "@/context/BackendContext";
 import { useSession } from "@/context/SessionContext";
+import { envoyerConsigneSol, formatDate } from "@/data/api";
 import { radiationData } from "@/data/radiationData";
 import {
   boneDensityData,
@@ -94,6 +96,30 @@ type Consigne = {
   etat: "en attente" | "transmise";
 };
 
+/** Ligne affichée dans la file de transmission, quelle que soit sa source (API ou démonstration). */
+type LigneConsigne = {
+  id: string;
+  miseEnFile: string;
+  destinataire: string;
+  texte: string;
+  etat: "attente" | "transmise" | "lue";
+};
+
+const LIBELLE_ETAT: Record<LigneConsigne["etat"], { texte: string; classe: string }> = {
+  attente: { texte: "à la prochaine fenêtre", classe: "is-warn" },
+  transmise: { texte: "transmise au bord", classe: "is-accent" },
+  lue: { texte: "lue par l’équipage", classe: "is-ok" },
+};
+
+/** Ce que le poste sol reçoit de la passerelle à bord (API AstroPulse). */
+type MembreBord = {
+  id: string;
+  minutes_since: number;
+  status: string;
+  alerts_24h: number;
+  latest: Record<string, { value: number }>;
+};
+
 const CONSIGNES_INITIALES: Consigne[] = [
   {
     id: "c-086",
@@ -120,13 +146,17 @@ function BlocEquipage({
   setConsigneTexte,
   destinataire,
   setDestinataire,
+  destinataires,
   mettreEnFile,
+  equipage,
 }: {
   consigneTexte: string;
   setConsigneTexte: (valeur: string) => void;
   destinataire: string;
   setDestinataire: (valeur: string) => void;
+  destinataires: string[];
   mettreEnFile: () => void;
+  equipage: MembreBord[] | null;
 }) {
   return (
     <>
@@ -146,7 +176,9 @@ function BlocEquipage({
         <section className="u-panel" aria-labelledby="crew-title">
           <div className="u-panel-head">
             <div>
-              <p className="u-panel-kicker">Dernières mesures reçues · 12:18 UTC</p>
+              <p className="u-panel-kicker">
+                {equipage ? "Reçu du bord · mesure réelle" : "Dernières mesures reçues · 12:18 UTC"}
+              </p>
               <h2 className="u-panel-title" id="crew-title">
                 État de l’équipage
               </h2>
@@ -158,31 +190,58 @@ function BlocEquipage({
 
           <div className="u-panel-body tight">
             <div className="u-rows">
-              {EQUIPAGE.map((membre) => (
-                <div className="u-row" key={membre.initiales}>
-                  <span className="u-row-value is-muted" style={{ width: 26 }}>{membre.initiales}</span>
-                  <span className="u-row-k">
-                    <b>{membre.nom}</b>
-                    <small>{membre.resume}</small>
-                  </span>
-                  <span className={`u-chip ${membre.etat === "ok" ? "is-ok" : "is-warn"}`}>
-                    <span className={`u-dot is-${membre.etat}`} aria-hidden="true" />
-                    {membre.libelle}
-                  </span>
-                </div>
-              ))}
+              {equipage
+                ? equipage.map((membre) => (
+                    <div className="u-row" key={membre.id}>
+                      <span className="u-row-k">
+                        <b>{membre.id}</b>
+                        <small>
+                          vu il y a {Math.round(membre.minutes_since)} min · {membre.alerts_24h} alerte(s) sur 24 h
+                          {membre.latest.heart_rate ? ` · ${Math.round(membre.latest.heart_rate.value)} bpm` : ""}
+                          {membre.latest.spo2 ? ` · ${membre.latest.spo2.value.toFixed(1)} %` : ""}
+                          {membre.latest.temperature ? ` · ${membre.latest.temperature.value.toFixed(1)} °C` : ""}
+                        </small>
+                      </span>
+                      <span className={`u-chip ${
+                        membre.status === "critical" ? "is-alert" : membre.status === "ok" ? "is-ok" : "is-warn"
+                      }`}>
+                        <span
+                          className={`u-dot ${
+                            membre.status === "critical" ? "is-alert" : membre.status === "ok" ? "is-ok" : "is-warn"
+                          }`}
+                          aria-hidden="true"
+                        />
+                        {membre.status === "silent" ? "Silencieux" : membre.status === "ok" ? "Nominal" : membre.status === "critical" ? "Critique" : "À suivre"}
+                      </span>
+                    </div>
+                  ))
+                : EQUIPAGE.map((membre) => (
+                    <div className="u-row" key={membre.initiales}>
+                      <span className="u-row-value is-muted" style={{ width: 26 }}>{membre.initiales}</span>
+                      <span className="u-row-k">
+                        <b>{membre.nom}</b>
+                        <small>{membre.resume}</small>
+                      </span>
+                      <span className={`u-chip ${membre.etat === "ok" ? "is-ok" : "is-warn"}`}>
+                        <span className={`u-dot is-${membre.etat}`} aria-hidden="true" />
+                        {membre.libelle}
+                      </span>
+                    </div>
+                  ))}
             </div>
           </div>
 
           <div className="u-panel-foot">
-            Ces valeurs proviennent de la couche de démonstration et ne sont pas transmises par un capteur réel.
+            {equipage
+              ? "Valeurs lues sur le poste sol (API AstroPulse) : état calculé à partir des résumés synchronisés par la passerelle."
+              : "Ces valeurs proviennent de la couche de démonstration et ne sont pas transmises par un capteur réel."}
           </div>
         </section>
 
         <section className="u-panel" aria-labelledby="consigne-title">
           <div className="u-panel-head">
             <div>
-              <p className="u-panel-kicker">Destinataire · {destinataire}</p>
+              <p className="u-panel-kicker">Destinataire · {destinataire || destinataires[0] || "—"}</p>
               <h2 className="u-panel-title" id="consigne-title">
                 Instruction à transmettre
               </h2>
@@ -196,9 +255,9 @@ function BlocEquipage({
             <label className="u-field">
               <span className="u-label">Destinataire</span>
               <select className="u-input" value={destinataire} onChange={(evenement) => setDestinataire(evenement.target.value)}>
-                {EQUIPAGE.map((membre) => (
-                  <option key={membre.nom} value={membre.nom}>
-                    {membre.nom}
+                {destinataires.map((nom) => (
+                  <option key={nom} value={nom}>
+                    {nom}
                   </option>
                 ))}
               </select>
@@ -435,8 +494,8 @@ function BlocJournal() {
   );
 }
 
-function BlocConsignes({ consignes }: { consignes: Consigne[] }) {
-  const enAttente = consignes.filter((consigne) => consigne.etat === "en attente").length;
+function BlocConsignes({ consignes, reel }: { consignes: LigneConsigne[]; reel: boolean }) {
+  const enAttente = consignes.filter((consigne) => consigne.etat === "attente").length;
 
   return (
     <>
@@ -474,8 +533,8 @@ function BlocConsignes({ consignes }: { consignes: Consigne[] }) {
                   <b>{consigne.texte}</b>
                   <small>Destinataire · {consigne.destinataire}</small>
                 </span>
-                <span className={`u-chip ${consigne.etat === "en attente" ? "is-warn" : "is-ok"}`}>
-                  {consigne.etat === "en attente" ? "à la prochaine fenêtre" : "transmise"}
+                <span className={`u-chip ${LIBELLE_ETAT[consigne.etat].classe}`}>
+                  {LIBELLE_ETAT[consigne.etat].texte}
                 </span>
               </div>
             ))}
@@ -483,8 +542,9 @@ function BlocConsignes({ consignes }: { consignes: Consigne[] }) {
         </div>
 
         <div className="u-panel-foot">
-          Une consigne mise en file part avec les mesures à l’ouverture de la prochaine fenêtre. Aucun message n’est
-          envoyé depuis ce prototype.
+          {reel
+            ? "Consignes réelles : écrites sur le poste sol, récupérées par la passerelle de bord, puis marquées lues par l’équipage. L’état affiché vient du backend."
+            : "Une consigne mise en file part avec les mesures à l’ouverture de la prochaine fenêtre. Aucun message n’est envoyé depuis ce prototype."}
         </div>
       </section>
 
@@ -516,12 +576,36 @@ const NAV: { id: VueSol; label: string }[] = [
 
 export default function GroundView() {
   const { theme } = useSession();
+  const { sol } = useBackend();
+  const equipage = useEquipageSol(sol);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [vue, setVue] = useState<VueSol>("equipage");
   const [consigneTexte, setConsigneTexte] = useState("Reporter l’exercice ARED et viser 8 h de sommeil sur 3 nuits");
-  const [destinataire, setDestinataire] = useState(EQUIPAGE[0].nom);
+  const [destinataire, setDestinataire] = useState("");
   const [consignes, setConsignes] = useState<Consigne[]>(CONSIGNES_INITIALES);
   const [traitees, setTraitees] = useState<string[]>([]);
+  const [version, setVersion] = useState(0);
+
+  const destinataires = equipage ? equipage.map((membre) => membre.id) : EQUIPAGE.map((membre) => membre.nom);
+  const cible = destinataire || destinataires[0] || "";
+  const messagesReels = useMessagesSol(sol, cible, version);
+
+  const consignesAffichees: LigneConsigne[] =
+    sol && messagesReels
+      ? messagesReels.map((message) => ({
+          id: `api-${message.id}`,
+          miseEnFile: formatDate(message.ts),
+          destinataire: cible,
+          texte: message.text,
+          etat: message.status === "read" ? "lue" : message.status === "delivered" ? "transmise" : "attente",
+        }))
+      : consignes.map((consigne) => ({
+          id: consigne.id,
+          miseEnFile: consigne.miseEnFile,
+          destinataire: consigne.destinataire,
+          texte: consigne.texte,
+          etat: consigne.etat === "transmise" ? "transmise" : "attente",
+        }));
 
   // tiroir de navigation : Échap referme, et le fond ne défile pas tant qu'il est ouvert
   useEffect(() => {
@@ -543,14 +627,26 @@ export default function GroundView() {
     setMenuOuvert(false);
   };
 
-  const mettreEnFile = () => {
+  const mettreEnFile = async () => {
     const texte = consigneTexte.trim();
     if (texte.length < 5) return;
+
+    // backend disponible : la consigne part réellement, avec son cycle sent → delivered → read
+    if (sol && cible) {
+      const envoi = await envoyerConsigneSol(cible, texte);
+      if (envoi) {
+        setConsigneTexte("");
+        setVersion((valeur) => valeur + 1);
+        setVue("consignes");
+        return;
+      }
+    }
+
     setConsignes((liste) => [
       {
         id: `c-${missionDay}-${liste.length + 1}`,
         miseEnFile: `jour ${missionDay} · 12:52 UTC`,
-        destinataire,
+        destinataire: cible,
         texte,
         etat: "en attente",
       },
@@ -579,7 +675,7 @@ export default function GroundView() {
     },
     consignes: {
       titre: "Consignes envoyées",
-      sous: `${consignes.length} consignes dans la file · transmission à la prochaine fenêtre`,
+      sous: `${consignesAffichees.length} consignes dans la file · transmission à la prochaine fenêtre`,
     },
   };
 
@@ -615,9 +711,9 @@ export default function GroundView() {
                   {ALERTES.length - traitees.length}
                 </span>
               )}
-              {entree.id === "consignes" && consignes.some((c) => c.etat === "en attente") && (
-                <span className="u-nav-count" aria-label="Une consigne en attente">
-                  {consignes.filter((c) => c.etat === "en attente").length}
+              {entree.id === "consignes" && consignesAffichees.some((c) => c.etat === "attente") && (
+                <span className="u-nav-count" aria-label="Consignes en attente">
+                  {consignesAffichees.filter((c) => c.etat === "attente").length}
                 </span>
               )}
             </button>
@@ -648,10 +744,12 @@ export default function GroundView() {
             <div className="u-sub">{TITRES[vue].sous}</div>
           </div>
           <div className="u-top-actions">
-            <span className="u-chip is-warn">
-              <span className="u-dot is-warn" aria-hidden="true" />
-              <span className="u-wide-only">Prototype · données simulées</span>
-              <span className="u-narrow-only">Démo</span>
+            <span className={`u-chip ${sol ? "is-ok" : "is-warn"}`}>
+              <span className={`u-dot is-${sol ? "ok" : "warn"}`} aria-hidden="true" />
+              <span className="u-wide-only">
+                {sol ? "Poste sol connecté" : "Démonstration · backend non connecté"}
+              </span>
+              <span className="u-narrow-only">{sol ? "Connecté" : "Démo"}</span>
             </span>
           </div>
         </header>
@@ -663,12 +761,14 @@ export default function GroundView() {
               setConsigneTexte={setConsigneTexte}
               destinataire={destinataire}
               setDestinataire={setDestinataire}
+              destinataires={destinataires}
               mettreEnFile={mettreEnFile}
+              equipage={equipage}
             />
           )}
           {vue === "alertes" && <BlocAlertes traitees={traitees} basculer={basculerAlerte} />}
           {vue === "journal" && <BlocJournal />}
-          {vue === "consignes" && <BlocConsignes consignes={consignes} />}
+          {vue === "consignes" && <BlocConsignes consignes={consignesAffichees} reel={sol} />}
         </div>
 
         <footer className="u-foot">

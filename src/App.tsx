@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar, { type ScreenName } from "@/components/Sidebar";
 import LoginScreen from "@/components/LoginScreen";
 import { DemoStateProvider } from "@/context/DemoStateContext";
+import { BackendProvider, useBackend } from "@/context/BackendContext";
 import { SessionProvider, useSession } from "@/context/SessionContext";
 import Dashboard from "@/views/Dashboard";
 import BoneHeart from "@/views/BoneHeart";
@@ -34,6 +35,7 @@ function ActiveScreen({ active }: { active: ScreenName }) {
 
 function AppShell() {
   const { role } = useSession();
+  const { mode } = useBackend();
   const [active, setActive] = useState<ScreenName>("Tableau de bord");
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [utcNow, setUtcNow] = useState(() => new Date());
@@ -99,10 +101,12 @@ function AppShell() {
           </div>
 
           <div className="u-top-actions">
-            <span className="u-chip is-warn">
-              <span className="u-dot is-warn" aria-hidden="true" />
-              <span className="u-wide-only">Prototype · données simulées</span>
-              <span className="u-narrow-only">Démo</span>
+            <span className={`u-chip ${mode === "live" ? "is-ok" : "is-warn"}`}>
+              <span className={`u-dot is-${mode === "live" ? "ok" : "warn"}`} aria-hidden="true" />
+              <span className="u-wide-only">
+                {mode === "live" ? "Système de bord connecté" : "Démonstration · backend non connecté"}
+              </span>
+              <span className="u-narrow-only">{mode === "live" ? "Connecté" : "Démo"}</span>
             </span>
             <div className="u-clock">
               <span>UTC</span>
@@ -133,7 +137,9 @@ export default function App() {
   return (
     <SessionProvider>
       <DemoStateProvider>
-        <AppShell />
+        <BackendProvider>
+          <AppShell />
+        </BackendProvider>
       </DemoStateProvider>
     </SessionProvider>
   );

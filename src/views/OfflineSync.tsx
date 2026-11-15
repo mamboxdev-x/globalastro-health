@@ -1,4 +1,6 @@
 import { useDemoState } from "@/context/DemoStateContext";
+import { useBackend, useLienBord } from "@/context/BackendContext";
+import { formatDate } from "@/data/api";
 
 const packetRows = [
   ["14:05:42", "ECG-HRV / BIO-04", "128,4"],
@@ -10,6 +12,8 @@ const packetRows = [
 
 export default function OfflineSync() {
   const { syncRequestPrepared, prepareSyncRequest } = useDemoState();
+  const { bord } = useBackend();
+  const lien = useLienBord(bord);
 
   return (
     <>
@@ -22,6 +26,45 @@ export default function OfflineSync() {
           <span className="u-chip is-warn">Liaison interrompue</span>
         </div>
       </div>
+
+      {bord && (
+        <section className="u-panel" aria-labelledby="lien-reel">
+          <div className="u-panel-head">
+            <div>
+              <p className="u-panel-kicker">Passerelle de bord · valeurs réellement mesurées</p>
+              <h2 className="u-panel-title" id="lien-reel">
+                Liaison avec le poste sol
+              </h2>
+            </div>
+            <div className="u-panel-right">
+              <span className={`u-chip ${lien?.enabled ? "is-ok" : "is-alert"}`}>
+                <span className={`u-dot ${lien?.enabled ? "is-ok" : "is-alert"}`} aria-hidden="true" />
+                {lien?.enabled ? "connectée" : "coupée"}
+              </span>
+            </div>
+          </div>
+
+          <div className="u-stats">
+            <div className="u-stat">
+              <span className="u-stat-k">Mesures en file à bord</span>
+              <span className="u-stat-v">{lien ? lien.pending_rows : "—"}</span>
+            </div>
+            <div className="u-stat">
+              <span className="u-stat-k">Dernier échange réussi</span>
+              <span className="u-stat-v" style={{ fontSize: 13 }}>{formatDate(lien?.last_ok ?? null)}</span>
+            </div>
+            <div className="u-stat">
+              <span className="u-stat-k">Dernière erreur</span>
+              <span className="u-stat-v" style={{ fontSize: 13 }}>{lien?.last_error ?? "aucune"}</span>
+            </div>
+          </div>
+
+          <div className="u-panel-foot">
+            Lu directement sur la passerelle de bord : la file d’attente et l’état du lien ne sont pas simulés par
+            l’interface. La synchronisation attend la fermeture des fenêtres de 5 minutes avant d’envoyer.
+          </div>
+        </section>
+      )}
 
       <section className="u-panel" aria-labelledby="link-title">
         <div className="u-link">
