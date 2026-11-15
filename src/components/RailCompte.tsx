@@ -1,4 +1,5 @@
 import { useSession } from "@/context/SessionContext";
+import { useLangue } from "@/context/LangueContext";
 
 /**
  * Bloc du bas du bandeau latéral : compte connecté, choix du thème, déconnexion.
@@ -7,6 +8,7 @@ import { useSession } from "@/context/SessionContext";
  */
 export default function RailCompte({ statut, note }: { statut: string; note: string }) {
   const { identifiant, role, theme, definirTheme, deconnecter } = useSession();
+  const { langue, definirLangue } = useLangue();
 
   const initiales = identifiant.replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase() || "GH";
 
@@ -41,6 +43,28 @@ export default function RailCompte({ statut, note }: { statut: string; note: str
           onClick={() => definirTheme("sombre")}
         >
           Sombre
+        </button>
+      </div>
+
+      <span className="u-seg-label" id="etiquette-langue" style={{ marginTop: 11 }}>
+        Langue de l’interface
+      </span>
+      <div className="u-seg" role="group" aria-labelledby="etiquette-langue">
+        <button
+          type="button"
+          className={langue === "fr" ? "is-on" : ""}
+          aria-pressed={langue === "fr"}
+          onClick={() => definirLangue("fr")}
+        >
+          Français
+        </button>
+        <button
+          type="button"
+          className={langue === "en" ? "is-on" : ""}
+          aria-pressed={langue === "en"}
+          onClick={() => definirLangue("en")}
+        >
+          English
         </button>
       </div>
 

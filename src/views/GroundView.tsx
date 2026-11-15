@@ -741,7 +741,7 @@ function BlocConsignes({ consignes, reel }: { consignes: LigneConsigne[]; reel: 
         <div className="u-panel-foot">
           {reel
             ? "Deux origines se mêlent ici : les consignes écrites sur le poste sol, dont l’état est lu auprès du backend (envoyée → transmise → lue), et celles restées dans la file locale faute de destinataire connu du poste sol — un astronaute inscrit dans ce navigateur, par exemple."
-            : "Une consigne mise en file part avec les mesures à l’ouverture de la prochaine fenêtre. Aucun message n’est envoyé depuis ce prototype."}
+            : "Une consigne mise en file part à l’ouverture de la prochaine fenêtre, avec les mesures du lot. Elle reste en attente tant que la base du sol n’est pas joignable."}
         </div>
       </section>
 
