@@ -34,7 +34,7 @@ export function traduire(texte: string, langue: Langue): string {
 
 /* ------------------------------------------------------------------ application au document */
 
-type Souvenir = { original: string; traduit: string };
+type Souvenir = { original: string; affiche: string };
 
 const souvenirsTexte = new WeakMap<Text, Souvenir>();
 const souvenirsAttribut = new WeakMap<Element, Map<string, Souvenir>>();
@@ -47,20 +47,20 @@ const ATTRIBUTS = ["placeholder", "title", "aria-label"];
 function traiterTexte(noeud: Text, langue: Langue) {
   const parent = noeud.parentElement;
   if (!parent || IGNOREES.has(parent.tagName)) return;
-  const souvenir = souvenirsTexte.get(noeud);
   const actuel = noeud.nodeValue ?? "";
+  const souvenir = souvenirsTexte.get(noeud);
 
-  // Le noeud porte encore ce que nous venons d'y écrire : rien à faire, et surtout pas de boucle.
-  if (souvenir && actuel === souvenir.traduit) return;
-
-  if (!souvenir || souvenir.original !== actuel) {
-    // texte neuf (ou modifié par l'application) : on le mémorise avant de le traduire
-    souvenirsTexte.set(noeud, { original: actuel, traduit: actuel });
+  /* Le noeud a-t-il été réécrit par l'application depuis notre dernier passage ? Si sa valeur
+     n'est ni le texte d'origine ni ce que nous y avons mis, c'est un texte neuf : il devient la
+     nouvelle origine. Comparer au seul dernier texte écrit ne suffirait pas — en français, ce
+     dernier texte EST le français, et l'on croirait à tort le travail déjà fait. */
+  if (!souvenir || (actuel !== souvenir.original && actuel !== souvenir.affiche)) {
+    souvenirsTexte.set(noeud, { original: actuel, affiche: actuel });
   }
   const memo = souvenirsTexte.get(noeud) as Souvenir;
   const attendu = traduire(memo.original, langue);
-  memo.traduit = attendu;
   if (actuel !== attendu) noeud.nodeValue = attendu;
+  memo.affiche = attendu;
 }
 
 function traiterAttributs(element: Element, langue: Langue) {
@@ -73,12 +73,13 @@ function traiterAttributs(element: Element, langue: Langue) {
       souvenirsAttribut.set(element, memoire);
     }
     const souvenir = memoire.get(nom);
-    if (souvenir && valeur === souvenir.traduit) continue;
-    if (!souvenir || souvenir.original !== valeur) memoire.set(nom, { original: valeur, traduit: valeur });
+    if (!souvenir || (valeur !== souvenir.original && valeur !== souvenir.affiche)) {
+      memoire.set(nom, { original: valeur, affiche: valeur });
+    }
     const memo = memoire.get(nom) as Souvenir;
     const attendu = traduire(memo.original, langue);
-    memo.traduit = attendu;
     if (valeur !== attendu) element.setAttribute(nom, attendu);
+    memo.affiche = attendu;
   }
 }
 
