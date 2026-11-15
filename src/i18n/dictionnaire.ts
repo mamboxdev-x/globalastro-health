@@ -605,6 +605,11 @@ export const DICTIONNAIRE_EN: Record<string, string> = {
   "Cmdt Mbaye": "Cdr Mbaye",
   "Ing. Kouassi": "Eng. Kouassi",
   "· capteurs du module": "· module sensors",
+  "HRV · référence pré-vol": "HRV · pre-flight reference",
+  "Le T-score absolu n’est pas mesuré à bord ; il ne peut pas être déduit de cette variation relative.":
+    "The absolute T-score is not measured on board; it cannot be deduced from this relative change.",
+  "Le rayonnement n’a pas de traitement à bord : la seule contre-mesure immédiate est l’abri, la seule contre-mesure longue est le suivi après la mission.":
+    "Radiation cannot be treated on board: the only immediate countermeasure is shelter, the only long-term one is follow-up after the mission.",
   "Relever la pression artérielle deux fois par jour pendant trois jours":
     "Measure blood pressure twice a day for three days",
   "Reporter l’exercice ARED et viser 8 h de sommeil sur 3 nuits":
@@ -644,6 +649,7 @@ export const REGLES_EN: { motif: RegExp; remplacement: string | ((...groupes: st
   { motif: /^(\d+) instruction\(s\) à lire$/, remplacement: "$1 instruction(s) to read" },
   { motif: /^(\d+) critique\(s\)$/, remplacement: "$1 critical" },
   { motif: /^(\d+) à suivre$/, remplacement: "$1 to watch" },
+  { motif: /^\/(\d+) validées?$/, remplacement: "/$1 validated" },
   { motif: /^Simulation partagée · (.+)$/, remplacement: "Shared simulation · $1" },
   { motif: /^Capteurs du module central · (.+)$/, remplacement: "Central module sensors · $1" },
   { motif: /^Reçu du bord · base du sol · (.+)$/, remplacement: "Received from the crew · ground database · $1" },

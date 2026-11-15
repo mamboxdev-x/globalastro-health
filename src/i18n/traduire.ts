@@ -12,15 +12,33 @@ export type Langue = "fr" | "en";
  * français. Une correspondance manquante laisse le texte d'origine — jamais de trou, jamais de clé
  * technique affichée.
  */
+/**
+ * Les sources mélangent deux apostrophes : la droite (') et la typographique (’). Une même phrase
+ * peut donc ne pas correspondre pour une seule différence de caractère invisible à l'œil. On essaie
+ * les variantes avant de conclure qu'il n'y a pas de correspondance.
+ */
+function variantes(texte: string): string[] {
+  if (!texte.includes("'") && !texte.includes("\u2019")) return [texte];
+  return [texte, texte.replace(/\u2019/g, "'"), texte.replace(/'/g, "\u2019")];
+}
+
+function chercherDansLeDictionnaire(texte: string): string | undefined {
+  for (const variante of variantes(texte)) {
+    const trouve = DICTIONNAIRE_EN[variante];
+    if (trouve !== undefined) return trouve;
+  }
+  return undefined;
+}
+
 export function traduire(texte: string, langue: Langue): string {
   if (langue === "fr") return texte;
-  const direct = DICTIONNAIRE_EN[texte];
+  const direct = chercherDansLeDictionnaire(texte);
   if (direct !== undefined) return direct;
 
   // les textes courts sont souvent encadrés d'espaces ou de puces : on retente sans
   const cle = texte.trim();
   if (!cle) return texte;
-  const sansEspaces = DICTIONNAIRE_EN[cle];
+  const sansEspaces = chercherDansLeDictionnaire(cle);
   if (sansEspaces !== undefined) return texte.replace(cle, sansEspaces);
 
   for (const regle of REGLES_EN) {
