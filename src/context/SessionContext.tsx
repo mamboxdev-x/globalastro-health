@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import * as api from "@/data/api";
+import { SUPABASE_CONFIGURE, connexionSupabase, inscrireCompteSupabase } from "@/data/supabase";
 
 /** Rôle de la personne connectée : à bord, ou au poste sol. */
 export type Role = "astro" | "sol";
@@ -137,6 +138,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const comptes = useMemo(() => tousLesComptes(comptesInscrits), [comptesInscrits]);
 
+  /** Ajoute un compte à la liste locale (miroir de ce qui existe dans une base). */
+  const memoriser = useCallback((compte: Compte) => {
+    setComptesInscrits((liste) => {
+      if (liste.some((connu) => connu.identifiant.toLowerCase() === compte.identifiant.toLowerCase())) {
+        return liste;
+      }
+      const suivante = [...liste, compte];
+      try {
+        window.localStorage.setItem(COMPTES_KEY, JSON.stringify(suivante));
+      } catch {
+        /* ignoré */
+      }
+      return suivante;
+    });
+  }, []);
+
   const connecter = useCallback(
     async (role: Role, identifiantSaisi: string, motDePasse?: string): Promise<ResultatConnexion> => {
       const identifiant = identifiantSaisi.trim();
@@ -148,6 +165,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         }
         ouvrir(local);
         return { ok: true };
+      }
+
+      // Base du sol (Supabase) d'abord : c'est elle qui partage les comptes entre les appareils.
+      if (SUPABASE_CONFIGURE) {
+        const duSol = await connexionSupabase(identifiant, motDePasse ?? "");
+        if (duSol?.ok && duSol.compte) {
+          const miroir: Compte = {
+            identifiant: duSol.compte.identifiant,
+            motDePasse: motDePasse ?? "",
+            role: duSol.compte.role,
+            profil: duSol.compte.profil as Profil | undefined,
+            creeLe: duSol.compte.cree_le ?? new Date().toISOString(),
+          };
+          memoriser(miroir);
+          ouvrir(miroir);
+          return { ok: true, viaBase: true };
+        }
+        if (duSol && duSol.ok === false) {
+          return { ok: false, message: duSol.message ?? "Connexion refusée par la base du sol." };
+        }
       }
 
       // Identifiant inconnu ici : on le demande à la base du module central, si elle tourne.
@@ -162,15 +199,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           profil: reponse.compte.profil as Profil | undefined,
           creeLe: reponse.compte.cree_le ?? new Date().toISOString(),
         };
-        setComptesInscrits((liste) => {
-          const suivante = [...liste, miroir];
-          try {
-            window.localStorage.setItem(COMPTES_KEY, JSON.stringify(suivante));
-          } catch {
-            /* ignoré */
-          }
-          return suivante;
-        });
+        memoriser(miroir);
         ouvrir(miroir);
         return { ok: true, viaBase: true };
       }
@@ -209,18 +238,28 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         return { ok: false, message: "Cet identifiant est déjà pris." };
       }
 
-      // La base du module central fait référence : c'est elle qui refuse les doublons et qui
-      // garde l'empreinte du mot de passe. Inutile de l'appeler si aucun backend n'est joignable.
-      const reponse = api.SONDE_ACTIVE
-        ? await api.inscrireCompteModule({
-            identifiant,
-            role: compte.role,
-            motDePasse: compte.motDePasse,
-            profil: compte.profil,
-          })
-        : null;
-      if (reponse && reponse.ok === false) {
-        return { ok: false, message: reponse.erreur ?? "Inscription refusée par la base." };
+      // La base du sol fait référence : elle refuse les doublons et garde l'empreinte.
+      // À défaut, le module central, puis le stockage de ce navigateur.
+      if (SUPABASE_CONFIGURE) {
+        const duSol = await inscrireCompteSupabase({
+          identifiant,
+          role: compte.role,
+          motDePasse: compte.motDePasse,
+          profil: compte.profil,
+        });
+        if (duSol && duSol.ok === false) {
+          return { ok: false, message: duSol.message ?? "Inscription refusée par la base du sol." };
+        }
+      } else if (api.SONDE_ACTIVE) {
+        const reponse = await api.inscrireCompteModule({
+          identifiant,
+          role: compte.role,
+          motDePasse: compte.motDePasse,
+          profil: compte.profil,
+        });
+        if (reponse && reponse.ok === false) {
+          return { ok: false, message: reponse.erreur ?? "Inscription refusée par la base." };
+        }
       }
 
       const nouveau: Compte = { ...compte, identifiant, creeLe: new Date().toISOString() };
@@ -236,10 +275,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
       return {
         ok: true,
-        viaBase: Boolean(reponse?.ok),
-        message: reponse?.ok
-          ? "Inscription enregistrée dans la base du module central."
-          : "Compte créé dans ce navigateur. La base du module central ne répond pas : l’inscription n’y est pas enregistrée.",
+        viaBase: SUPABASE_CONFIGURE || api.SONDE_ACTIVE,
+        message: SUPABASE_CONFIGURE
+          ? "Inscription enregistrée dans la base du sol."
+          : "Compte créé dans ce navigateur.",
       };
     },
     [comptes],

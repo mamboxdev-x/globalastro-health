@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SONDE_ACTIVE, consignesModule, envoyerConsigneModule, etatConsigneModule } from "@/data/api";
+import {
+  SUPABASE_CONFIGURE,
+  consignesSupabase,
+  ecrireConsigneSupabase,
+  marquerConsigneSupabase,
+} from "@/data/supabase";
 
 /**
  * Les consignes voyagent du sol vers le bord, par deux transports :
@@ -29,6 +35,7 @@ export type ConsignePartagee = {
 
 const CLE = "globalastro-consignes-v1";
 const PREFIXE_BASE = "base-";
+const PREFIXE_SOL = "sol-";
 
 /** Identifiant de connexion proposé par défaut à l'astronaute : il reçoit la consigne d'exemple. */
 export const ASTRONAUTE_DEMO = "cdr.mbaye";
@@ -103,7 +110,6 @@ function fusionner(locales: ConsignePartagee[], deLaBase: ConsignePartagee[]): C
 
 export function useConsignes() {
   const [liste, setListe] = useState<ConsignePartagee[]>(() => lireConsignes());
-  const baseUtilisable = useRef(SONDE_ACTIVE);
 
   const enregistrer = useCallback((suivante: ConsignePartagee[]) => {
     const triee = trier(suivante);
@@ -112,11 +118,32 @@ export function useConsignes() {
     return triee;
   }, []);
 
-  // ce qu'un autre poste a écrit arrive ici
+  // ce qu'un autre poste a écrit arrive ici : d'abord la base du sol, sinon le module central
   useEffect(() => {
-    if (!baseUtilisable.current) return;
+    if (!SUPABASE_CONFIGURE && !SONDE_ACTIVE) return;
     let vivant = true;
     const tirer = async () => {
+      if (SUPABASE_CONFIGURE) {
+        const lignes = await consignesSupabase();
+        if (!vivant || !lignes) return;
+        const converties = lignes.map((ligne) => ({
+          id: `${PREFIXE_SOL}${ligne.id}`,
+          ts: Date.parse(ligne.cree_le) || Date.now(),
+          miseEnFile: ligne.mise_en_file || `jour — · ${ligne.cree_le.slice(11, 16)} UTC`,
+          destinataire: ligne.destinataire,
+          texte: ligne.texte,
+          etat: (ligne.etat as EtatConsigne) ?? "attente",
+          lueLe: ligne.lue_le ? ligne.lue_le.slice(11, 16) : undefined,
+          origine: "base" as const,
+        }));
+        setListe((actuelle) => {
+          const fusion = fusionner(actuelle, converties);
+          ecrireConsignes(fusion);
+          return fusion;
+        });
+        return;
+      }
+
       const distantes = await consignesModule();
       if (!vivant || !distantes) return;
       const converties: ConsignePartagee[] = distantes.map((distante) => ({
@@ -165,8 +192,26 @@ export function useConsignes() {
       };
       let suivante = enregistrer([locale, ...lireConsignes()]);
 
-      // on tente la base : c'est ce qui fait traverser l'instruction d'un appareil à l'autre
-      if (baseUtilisable.current) {
+      // base du sol d'abord : c'est elle qui fait traverser l'instruction d'un appareil à l'autre
+      if (SUPABASE_CONFIGURE) {
+        const creees = await ecrireConsigneSupabase(destinataire, texte, miseEnFile);
+        const creee = creees?.[0];
+        if (creee) {
+          suivante = enregistrer([
+            {
+              ...locale,
+              id: `${PREFIXE_SOL}${creee.id}`,
+              ts: Date.parse(creee.cree_le) || locale.ts,
+              origine: "base",
+            },
+            ...suivante.filter((consigne) => consigne.id !== locale.id),
+          ]);
+        }
+        return suivante;
+      }
+
+      // sinon le module central, quand il tourne sur le même poste
+      if (SONDE_ACTIVE) {
         const reponse = await envoyerConsigneModule(destinataire, texte, miseEnFile);
         if (reponse?.ok && reponse.consigne) {
           const confirmee: ConsignePartagee = {
@@ -191,7 +236,12 @@ export function useConsignes() {
       ecrireConsignes(suivante);
       return suivante;
     });
-    if (baseUtilisable.current && id.startsWith(PREFIXE_BASE)) {
+    // l'accusé de réception repart vers la base qui a fourni la consigne
+    if (SUPABASE_CONFIGURE && id.startsWith(PREFIXE_SOL)) {
+      void marquerConsigneSupabase(Number(id.slice(PREFIXE_SOL.length)), etat);
+      return;
+    }
+    if (SONDE_ACTIVE && id.startsWith(PREFIXE_BASE)) {
       void etatConsigneModule(id.slice(PREFIXE_BASE.length), etat);
     }
   }, []);
